@@ -476,7 +476,7 @@ sub _int_handle_subscription {
    if ($type eq 'subscribe') {
       $self->{subsc_reqs}->{$resjid}->{bare_jid $from} = {
          from    => bare_jid ($from),
-         node    => $node, 
+         node    => $node,
          comment => $status
       };
 

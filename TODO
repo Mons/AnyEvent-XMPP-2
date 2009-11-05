@@ -17,9 +17,11 @@ X replace Net::LibIDN with Unicode::Stringprep and Net::IDN::Encode possibly?
    - AnyEvent::XMPP::Ext::* - skim over them after finished other docs.
    - AE::XMPP::IM, AE::XMPP::Stream::Client
 
-- fix extensions to new API:
+- write extensions to new API:
    - Ext::Pubsub
-   - Ext::VCard
+   - Ext::VCardAvatar
+   X Ext::VCard
+
 
 X make ::XMPP::Node store the prefixes of the namespaces and
   have them accessible.

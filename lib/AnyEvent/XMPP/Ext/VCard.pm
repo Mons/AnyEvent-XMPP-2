@@ -13,7 +13,7 @@ use base qw/AnyEvent::XMPP::Ext/;
 
 =head1 NAME
 
-AnyEvent::XMPP::Ext::VCard - VCards (XEP-0054 & XEP-0153)
+AnyEvent::XMPP::Ext::VCard - VCards (XEP-0054)
 
 =head1 SYNOPSIS
 
@@ -36,8 +36,9 @@ AnyEvent::XMPP::Ext::VCard - VCards (XEP-0054 & XEP-0153)
 
 =head1 DESCRIPTION
 
-This extension handles setting and retrieval of the VCard (XEP-0054) and the
-VCard based avatars (XEP-0153).
+This extension handles setting and retrieval of the VCard (XEP-0054).  It has
+also support to parse and decode the VCard based avatars (XEP-0153).
+But this module does not implement handling of the avatar picture hashes.
 
 For example see the test suite of L<AnyEvent::XMPP>.
 
@@ -53,135 +54,8 @@ sub disco_feature { xmpp_ns ('vcard') }
 
 sub init {
    my ($self) = @_;
-
-   # TODO: test
-   $self->{extendable}->reg_cb (
-      source_available => sub {
-         my ($ext, $jid) = @_;
-      },
-      generated_presence => sub {
-         my ($pres, $node) = @_;
-
-         my $photo_hash;
-
-         if ($self->{vcards}->{$node->meta->{src}}) {
-            $photo_hash = '';
-            my $hash    = $self->{vcards}->{$node->meta->{src}}->{_avatar_hash};
-            $photo_hash = $hash if defined $hash;
-         }
-
-         $node->add ({
-            node => {
-               dns  => 'vcard_upd',
-               name => 'x',
-               childs => [
-                  defined $photo_hash
-                     ? { name => 'photo',
-                         childs => [
-                             $photo_hash eq '' ? () : (\$photo_hash)
-                         ]
-                       }
-                     : ()
-               ]
-            }
-         });
-      },
-   );
 }
 
-sub hook_on {
-   my ($self, $con, $dont_retrieve_vcard) = @_;
-
-   Scalar::Util::weaken $self;
-
-   my $rid =
-      $con->reg_cb (
-         ext_before_send_presence_hook => sub {
-            my ($con) = @_;
-            my $chlds;
-
-            my $vc = $self->my_vcard ($con);
-
-            if ($vc && !$vc->{_avatar}) {
-               push @$chlds, { ns => xmpp_ns ('vcard_upd'), name => 'photo' }
-
-            } elsif ($vc && $vc->{_avatar}) {
-               push @$chlds, { 
-                  ns => xmpp_ns ('vcard_upd'),
-                  name => 'photo',
-                  childs => [ $vc->{_avatar_hash} ]
-               }
-            }
-
-            {
-               defns => xmpp_ns ('vcard_upd'),
-               node => {
-                  ns => xmpp_ns ('vcard_upd'),
-                  name => 'x',
-                  ($chlds ? (childs => [ @$chlds ]) : ()),
-              }
-            }
-         },
-         ext_after_session_ready => sub {
-            my ($con) = @_;
-
-            if (not $dont_retrieve_vcard) {
-               $self->retrieve ($con, undef, sub {
-                  my ($jid, $vc, $error) = @_;
-
-                  if ($error) {
-                     $self->event (retrieve_vcard_error => $error);
-                  }
-
-                  # the own vcard was already set by retrieve
-                  # this will push out an updated presence
-                  $self->_publish_avatar;
-               });
-            }
-         }
-      );
-
-   my $ar = [$con, $rid];
-   Scalar::Util::weaken $ar->[0];
-   push @{$self->{hooked}}, $ar;
-}
-
-sub _publish_avatar {
-   my ($self) = @_;
-
-   for (@{$self->{hooked}}) {
-      if ($_->[0]) { $_->[0]->send_presence () }
-   }
-}
-
-=item B<my_vcard ($con)>
-
-This method returns the vcard for the account connected by C<$con>.
-This only works if vcard was (successfully) retrieved. If the connection was
-hoooked up the vcard was automatically retrieved.
-
-Alternatively C<$con> can also be a string reprensenting the JID of an
-account.
-
-=cut
-
-sub my_vcard {
-   my ($self, $con) = @_;
-   $self->{own_vcards}->{prep_bare_jid (ref ($con) ? $con->jid : $con)}
-}
-
-=item B<cache ([$newcache])>
-
-See also C<new> about the meaning of cache hashes.
-If no argument is given the current cache is returned.
-
-=cut
-
-sub cache {
-   my ($self, $cache_hash) = @_;
-   $self->{cache} = $cache_hash if defined $cache_hash;
-   $self->{cache}
-}
 
 =item B<store ($src, $vcard, $cb)>
 
@@ -323,11 +197,6 @@ sub encode_vcard {
    \@childs
 }
 
-sub DESTROY {
-   my ($self) = @_;
-   $self->unreg_cb ($self->{cb_id});
-}
-
 =back
 
 =head1 VCARD STRUCTURE
@@ -385,11 +254,6 @@ if you want to store an avatar.
 =head1 EVENTS
 
 The vcard extension will emit these events:
-
-=head1 TODO
-
-Implement caching, the cache stuff is just a storage hash at the moment.
-Or maybe drop it completely and let the application handle caching.
 
 =over 4
 

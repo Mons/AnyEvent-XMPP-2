@@ -102,7 +102,7 @@ sub init {
                 || cmp_bare_jid ($from, $node->meta->{dest})) {
                $self->_handle_push ($node);
                $ext->stop_event;
-            } 
+            }
          }
       }
    );
@@ -243,7 +243,7 @@ sub item_jids {
 
 sub get {
    my ($self, $jid, $item_jid) = @_;
-   $jid      = stringprep_jid $jid;
+   $jid = stringprep_jid $jid;
    return undef unless exists $self->{r}->{$jid};
    unless (defined $item_jid) {
       return $self->{r}->{$jid};
