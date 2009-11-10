@@ -20,6 +20,7 @@ WriteMakefile(
         'Digest::SHA1'       => 0,
         'Object::Event'      => 1.2,
         'Time::Local'        => 0,
+        'common::sense'      => 0,
     },
     dist                => {
        COMPRESS => 'gzip -9f',

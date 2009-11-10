@@ -385,6 +385,7 @@ sub cleanup_state {
    delete $self->{authenticated};
    delete $self->{res_manager};
    delete $self->{stream_start_cnt};
+   delete $self->{ws_ping};
 
    if ($self->{tracker}) {
       $self->{tracker}->disconnect;
@@ -575,10 +576,22 @@ was bound.
 
 =cut
 
-sub stream_ready : event_cb { 
+sub _start_whitespace_ping {
+   my ($self) = @_;
+
+   return unless $self->{whitespace_ping_interval};
+
+   $self->{ws_ping} = AE::timer 0, $self->{whitespace_ping_interval}, sub {
+      $self->write_data (' ');
+   };
+}
+
+sub stream_ready : event_cb {
    my ($self) = @_;
 
    $self->source_available (stringprep_jid $self->{jid});
+
+   $self->_start_whitespace_ping;
 
    if ($DEBUG) {
       print "stream ready!\n";

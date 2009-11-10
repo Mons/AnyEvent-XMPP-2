@@ -1,10 +1,10 @@
 package AnyEvent::XMPP::Ext::OOB;
+use common::sense;
 use AnyEvent::XMPP;
 use AnyEvent::XMPP::Namespaces qw/xmpp_ns/;
 use AnyEvent::XMPP::Util qw/new_iq new_reply new_error/;
 use AnyEvent::XMPP::Node qw/simxml/;
 use Scalar::Util qw/weaken/;
-use strict;
 
 use base qw/AnyEvent::XMPP::Ext/;
 

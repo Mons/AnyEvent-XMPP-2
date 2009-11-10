@@ -331,7 +331,7 @@ sub set_handle {
    $self->{connected} = 1;
    $self->{peer_host} = $peer_host;
    $self->{peer_port} = $peer_port;
-   
+
    $self->reinit;
    $self->connected ($peer_host, $peer_port);
 }

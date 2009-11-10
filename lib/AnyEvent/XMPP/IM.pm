@@ -161,7 +161,7 @@ sub send_message {
    if ($self->{muc}->joined_room ($resjid, $tojid)
        && is_bare_jid ($tojid)) {
 
-      $self->{im}->send (
+      $self->send (
          new_message (groupchat => $msg, src => $resjid, to => $tojid));
       return (0, $resjid);
    }
