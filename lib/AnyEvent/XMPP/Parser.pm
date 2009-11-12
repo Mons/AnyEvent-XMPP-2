@@ -128,7 +128,7 @@ parser object will be in the namespace 'ae:xmpp:stream:default_ns'.
 =head1 PERFORMANCE
 
 A small note about performance here: While benchmarking my parser I discovered
-that my old parser didn't really scale that well due to a bug it even had a
+that my old parser didn't really scale that well due to a bug - it even had a
 memleak.
 
 Unfortunately the new parser is (if compared to the fixed version of the old
@@ -342,8 +342,8 @@ sub _strip_ns {
 
 sub _normalize_value {
    my ($str, $is_attr) = @_;
-   $str =~ s/\xD\xA/\xA/go;
-   $str =~ s/\xD/\xA/go;
+   $str =~ s/\x0D\x0A/\x0A/go;
+   $str =~ s/\x0D/\x0A/go;
 
    if ($is_attr) {
       $str =~ s/[\x09\x0d\x0a]/\x20/go;
