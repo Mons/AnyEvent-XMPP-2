@@ -2,6 +2,22 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
+print <<EOF;
+Wellcome to AnyEvent::XMPP (version 1.x)
+=========================================
+
+ ************************** CAUTION **************************
+ * This is 'AnyEvent::XMPP version 1.x' and the API is       *
+ * completely incompatible to the previous 0.x versions.     *
+ *                                                           *
+ * The old versions are still available on CPAN:             *
+ * http://search.cpan.org/CPAN/authors/id/E/EL/ELMEX/        *
+ *************************************************************
+
+
+EOF
+sleep 3;
+
 WriteMakefile(
     NAME                => 'AnyEvent::XMPP',
     AUTHOR              => 'Robin Redeker <elmex@ta-sa.org>',
