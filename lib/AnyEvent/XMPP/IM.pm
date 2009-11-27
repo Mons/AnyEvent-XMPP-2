@@ -191,6 +191,8 @@ sub nickname_for_jid {
       : node_jid ($jid)
 }
 
+=back
+
 =head1 EVENTS
 
 These events are emitted by this object via the L<Object::Event> API:
