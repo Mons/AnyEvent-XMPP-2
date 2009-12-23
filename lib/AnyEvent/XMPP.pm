@@ -8,50 +8,61 @@ AnyEvent::XMPP - An implementation of the XMPP Protocol
 
 =head1 VERSION
 
-Version 0.4
+Version 1.0
 
 =cut
 
-our $VERSION = '0.4';
+our $VERSION = '1.0';
 
 =head1 SYNOPSIS
 
-   use AnyEvent::XMPP::Connection;
+   use AnyEvent::XMPP::IM;
 
 or:
 
-   use AnyEvent::XMPP::IM::Connection;
+   use AnyEvent::XMPP::Stream::Client;
 
 or:
 
-   use AnyEvent::XMPP::Client;
+   use AnyEvent::XMPP::Stream::Component;
 
 =head1 DESCRIPTION
 
 This is the head module of the L<AnyEvent::XMPP> XMPP client protocol (as described in
 RFC 3920 and RFC 3921) framework.
 
-L<AnyEvent::XMPP::Connection> is a RFC 3920 conforming "XML" stream implementation
-for clients, which handles TCP connect up to the resource binding. And provides
-low level access to the XML nodes on the XML stream along with some high
-level methods to send the predefined XML stanzas.
+The earlier versions (0.51 and earlier) have a completely different API.
+The scalability of the previous API in aspect of new and more XMPP extensions
+exceeded a maintainable state. The new version also comes with less C dependencies,
+there is no direct C dependency. Only L<Net::SSLeay>, which is used by L<AnyEvent::Handle>,
+requires a C binding to the OpenSSL library.
 
-L<AnyEvent::XMPP::IM::Connection> is a more high level module, which is derived
-from L<AnyEvent::XMPP::Connection>. It handles all the instant messaging client
-functionality described in RFC 3921.
+Let me list some of the main modules/packages you will find in the L<AnyEvent::XMPP>
+distribution:
 
-L<AnyEvent::XMPP::Client> is a multi account client class. It manages connections
-to multiple XMPP accounts and tries to offer a nice high level interface
-to XMPP communication.
+L<AnyEvent::XMPP::IM> is a highlevel API for a multi-account XMPP client. It manages
+connections for you and will load required extensions for everyday person to person
+chats. It inherits it's connection management interface from L<AnyEvent::XMPP::CM>.
 
-For a list of L</Supported extensions> see below.
+L<AnyEvent::XMPP::Stream::Client> this is a bare XMPP client connection which
+includes client authentication. It will not do much more than connecting and authenticating
+as client entity to an XMPP server. If you need presence handling and other stuff you
+should take a look at the extension modules, of which you will find a summary
+in L<AnyEvent::XMPP::Ext>.
 
-There are also other modules in this distribution, for example:
-L<AnyEvent::XMPP::Util>, L<AnyEvent::XMPP::Parser> and those I
-forgot :-) Those modules might be helpful and/or required if you want to use
-this framework for XMPP.
+You can also write XMPP components with the L<AnyEvent::XMPP::Stream::Component> API.
 
-If you have any questions or seek for help look below under L</SUPPORT>.
+Most classes in L<AnyEvent::XMPP> which handle connections also implement the
+L<AnyEvent::XMPP::Delivery> interface, which is an generic API for sending and
+receiving XMPP stanzas. You also want to consult the documentation of
+L<AnyEvent::XMPP::Node> which is used to represent XMPP stanzas. In context of
+L<AnyEvent::XMPP::Node>s you should also read L<AnyEvent::XMPP::Meta>, which is
+a documentation of meta attributes of L<AnyEvent::XMPP::Node> instances (which
+can be accessed through the C<meta> method).
+
+Some classes also inherit the L<AnyEvent::XMPP::StanzaHandler> interface, which
+extends the L<AnyEvent::XMPP::Delivery> API with some specialized XMPP stanza
+handling (mostly correct handling of IQ stanzas).
 
 =head1 REQUIREMENTS
 
@@ -103,37 +114,9 @@ Here are some notes to the last releases (release of this version is at top):
 
 =over 4
 
-=item * 0.4
+=item * 0.51 and older
 
-Minor fixes and feature enhancements: Added old_style_ssl option for direct
-port 5223 SSL connections. Providing 'get_own_contact' for keeping
-track of own resources.
-
-The L<AnyEvent::XMPP::Ext::MUC> extension was rewritten and provides a more
-sane API now.
-
-For details consult the Changes file in the distribution.
-
-=item * 0.3
-
-Fixed some small bugs and improved documentation a bit, especially w.r.t.
-parameter passing of host and ports.
-
-=item * 0.2
-
-Renamed module from L<Net::XMPP2> to L<AnyEvent::XMPP>. L<Net::XMPP2> is herby
-deprecated!
-
-Rewrote the low-level socket stuff to use L<AnyEvent::Socket> and L<AnyEvent::Handle>.
-Removed blocking write functionality, which can't be supported that
-easily with L<AnyEvent::Handle> (however, if you want to wait until the send-buffer
-is empty you best use the C<send_buffer_empty> event of L<AnyEvent::XMPP::Connection>).
-
-For more details consult the Changes file of the AnyEvent::XMPP distribution.
-
-=item * older
-
-For older release notes please have a look at the Changes file or CPAN.
+Older releases are not compatible with the 1.0 API.
 
 =back
 
