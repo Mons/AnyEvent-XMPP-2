@@ -18,12 +18,9 @@ my $im = AnyEvent::XMPP::IM->new;
 $AnyEvent::XMPP::IM::DEBUG     = $DEBUG;
 $AnyEvent::XMPP::Stream::DEBUG = $DEBUG;
 
-$im->add_ext ('LangExtract');         # this extension is for body
-                                      # extraction from messages
-
-my $pres = $im->add_ext ('Presence'); # this extension is for dealing
-                                      # with presence in general (and neccessary
-                                      # for normal operations)
+# Note: The ::IM module loads some extensions for you, such as the
+#       AnyEvent::XMPP::Ext::Presence extension.
+my $pres = $im->get_ext ('Presence');
 
 # setting the default presence for all our connected resources:
 $pres->set_default ('available', "I'm just an AnyEvent::XMPP test script.", 1);
@@ -33,14 +30,11 @@ $im->reg_cb (
       my ($im, $jid, $peer_host, $peer_port) = @_;
       print "connected $jid to $peer_host:$peer_port\n";
    },
-   connect_error => sub {
-      my ($im, $jid, $reason, $recon) = @_;
-      print "connect error at $jid: $reason, reconnection try "
-            . "in $recon seconds.\n";
-   },
    error => sub {
       my ($im, $jid, $error) = @_;
-      print "error on $jid: " . $error->string . "\n";
+      print "error at $jid: " . $error->string . "\n";
+      $im->stop_event; # unless we to stop the error event, the
+                       # internal error handler will print a warning
    },
    disconnected => sub {
       my ($im, $jid, $peer_host, $peer_port, $reason, $recon) = @_;
@@ -72,8 +66,5 @@ $im->reg_cb (
 
 $im->add_account ($JID, $PASSWORD);
 print "added account $JID\n";
-
-# nessary to initiate the connection:
-$im->update_connections;
 
 $cv->recv; # see perldoc AnyEvent
