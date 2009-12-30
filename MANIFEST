@@ -54,7 +54,6 @@ lib/AnyEvent/XMPP/Stream/Component.pm
 lib/AnyEvent/XMPP/Test.pm
 lib/AnyEvent/XMPP/Ext/Disco/Info.pm
 lib/AnyEvent/XMPP/Ext/Disco/Items.pm
-lib/AnyEvent/XMPP/Ext/DataForm.pm
 lib/AnyEvent/XMPP/Ext/Pubsub.pm
 lib/AnyEvent/XMPP/Ext/Registration.pm
 lib/AnyEvent/XMPP/Ext/Disco.pm
@@ -65,6 +64,7 @@ lib/AnyEvent/XMPP/Ext/Version.pm
 lib/AnyEvent/XMPP/Ext/VCard.pm
 lib/AnyEvent/XMPP/Namespaces.pm
 lib/AnyEvent/XMPP/Util.pm
+lib/AnyEvent/XMPP/Util/DataForm.pm
 lib/AnyEvent/XMPP/Ext.pm
 lib/AnyEvent/XMPP/Error/IQ.pm
 lib/AnyEvent/XMPP/Error/Exception.pm

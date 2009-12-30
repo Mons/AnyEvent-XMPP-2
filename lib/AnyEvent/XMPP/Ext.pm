@@ -11,20 +11,26 @@ AnyEvent::XMPP::Ext - Extension baseclass and documentation
 
 =head1 DESCRIPTION
 
-This module also has documentation about the supported extensions
-and also is a base class for all extensions that can be added
-via the C<add_extension> method of the classes that derive from
-L<AnyEvent::XMPP::Extendable>. (That are for example:
-L<AnyEvent::XMPP::Stream> (and derived classes), L<AnyEvent::XMPP::CM>).
+This module also has documentation about the supported extensions and also is a
+base class for all extensions that can be added via the C<add_extension> method
+of the classes that derive from L<AnyEvent::XMPP::Extendable>. (That are for
+example: L<AnyEvent::XMPP::Stream> (and derived classes), L<AnyEvent::XMPP::CM>
+and others).
+
+This class inherits a callback API from the L<Object::Event> class. Please consult
+the documentation of L<Object::Event> for further information about that API.
 
 =head1 Methods
 
 =over 4
 
-=item B<disco_feature>
+=item my $ext = AnyEvent::XMPP::Ext::*->new
 
-This method can be overwritten by the extension and should return
-a list of namespace URIs of the features that the extension enables.
+This is the constructor that should be inherited and not overwritten by
+L<AnyEvent::XMPP> extensions. It should also not be called directly, instead
+the L<AnyEvent::XMPP::Extendable> class takes care of proper instance creation.
+
+If you need to do initialization in your extension have a look at the C<init> method below.
 
 =cut
 
@@ -49,11 +55,42 @@ sub new {
    $self
 }
 
+
+=item $ext->init ()
+
+This method can be overwritten by the subclasses and be used for initialization of the
+extension.
+
+=cut
+
 sub init { } # just a default implementation...
+
+=item my (@pkgs) = $ext->required_extensions ()
+
+This method can be overwritten by the extension and should return
+a list of package names of extensions that need to be loaded and configured
+before this extension can be successfully initialzed.
+
+=cut
 
 sub required_extensions { }
 
+=item my (@pkgs) = $ext->autoload_extensions ()
+
+This method can be overwritten and should return a list of package names
+of extensions that should be automatically loaded (and not require any special setup)
+before the extension is loaded.
+
+=cut
+
 sub autoload_extensions { }
+
+=item my (@uris) = $ext->disco_feature ()
+
+This method can be overwritten by the extension and should return
+a list of namespace URIs of the features that the extension enables.
+
+=cut
 
 sub disco_feature { }
 
@@ -65,17 +102,17 @@ This is the list of supported XMPP extensions:
 
 B<NOTE>: Not all modules in the L<AnyEvent::XMPP::Ext::> namespace actually
 implement the L<AnyEvent::XMPP::Ext> interface and can't be used to extend
-L<AnyEvent::XMPP::Extendable> objects directly.  Like for example
-L<AnyEvent::XMPP::Ext::DataForm> which just handles data forms according to
-XEP-0004, which is not a direct protocol extension, but a module to make it
-easier to handle data forms.
+L<AnyEvent::XMPP::Extendable> objects directly.
+
+TODO: Confirm this!
 
 =over 4
 
 =item XEP-0004 - Data Forms (Version 2.8)
 
-This extension handles data forms as described in XEP-0004.
-L<AnyEvent::XMPP::Ext::DataForm> allows you to construct, receive and
+This extension handles data forms as described in XEP-0004. It's not an extension
+you can load via the L<AnyEvent::XMPP::Extendable> interface, but just a special
+utility class: L<AnyEvent::XMPP::Util::DataForm> allows you to construct, receive and
 answer data forms. This is necessary for all sorts of things in XMPP.
 For example XEP-0055 (Jabber Search) or also In-band registration.
 
@@ -98,7 +135,7 @@ See also L<AnyEvent::XMPP::Ext::OOB>.
 =item XEP-0068 - Field Standardization for Data Forms (Version 1.1)
 
 Handling of the special hidden FORM_TYPE field in Data Forms,
-see also L<AnyEvent::XMPP::Ext::DataForm>.
+see also L<AnyEvent::XMPP::Util::DataForm>.
 
 =item XEP-0077 - In-Band Registration (Version 2.2)
 

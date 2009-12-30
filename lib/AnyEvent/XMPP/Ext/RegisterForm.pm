@@ -2,7 +2,7 @@ package AnyEvent::XMPP::Ext::RegisterForm;
 use strict;
 use AnyEvent::XMPP::Util;
 use AnyEvent::XMPP::Namespaces qw/xmpp_ns/;
-use AnyEvent::XMPP::Ext::DataForm;
+use AnyEvent::XMPP::Util::DataForm;
 use AnyEvent::XMPP::Ext::OOB;
 
 =head1 NAME
@@ -77,7 +77,7 @@ sub try_fillout_registration {
    my $nform;
 
    if (my $df = $self->get_data_form) {
-      my $af = AnyEvent::XMPP::Ext::DataForm->new;
+      my $af = AnyEvent::XMPP::Util::DataForm->new;
       $af->make_answer_form ($df);
       $af->set_field_value (username => $username);
       $af->set_field_value (password => $password);
@@ -143,7 +143,7 @@ sub get_legacy_form_fields {
 
 =item B<get_data_form>
 
-This method returns the L<AnyEvent::XMPP::Ext::DataForm> that came
+This method returns the L<AnyEvent::XMPP::Util::DataForm> that came
 with the registration response. If no data form was provided by the
 server this method returns undef.
 
@@ -171,7 +171,7 @@ sub get_oob {
 sub init_new_form {
    my ($self, $formnode) = @_;
 
-   my $df = AnyEvent::XMPP::Ext::DataForm->new;
+   my $df = AnyEvent::XMPP::Util::DataForm->new;
    $df->from_node ($formnode);
    $self->{data_form} = $df;
 }

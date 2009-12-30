@@ -4,7 +4,7 @@ use AnyEvent::XMPP::Util qw/stringprep_jid new_iq new_reply join_jid split_jid r
                             extract_lang_element prep_bare_jid new_presence cmp_jid/;
 use Scalar::Util qw/weaken/;
 use AnyEvent::XMPP::Error::Presence;
-use AnyEvent::XMPP::Ext::DataForm;
+use AnyEvent::XMPP::Util::DataForm;
 use strict;
 no warnings;
 
@@ -117,7 +117,7 @@ sub init {
       ext_after_created => sub {
          my ($self, $resjid, $mucjid) = @_;
 
-         my $df = AnyEvent::XMPP::Ext::DataForm->new;
+         my $df = AnyEvent::XMPP::Util::DataForm->new;
          $df->set_type ('submit');
          my $sxl = $df->to_simxml;
 

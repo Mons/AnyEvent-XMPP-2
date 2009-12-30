@@ -1,6 +1,6 @@
 package AnyEvent::XMPP::Ext::Disco::Info;
 use AnyEvent::XMPP::Namespaces qw/xmpp_ns/;
-use AnyEvent::XMPP::Ext::DataForm;
+use AnyEvent::XMPP::Util::DataForm;
 use Encode;
 use Digest::SHA1 qw/sha1_base64/;
 use strict;
@@ -71,7 +71,7 @@ sub init {
    $self->{features}->{$_->attr ('var')}++ for @fs;
 
    for my $dnode ($query->find (data_form => 'x')) {
-      push @{$self->{extended}}, AnyEvent::XMPP::Ext::DataForm->new->from_node ($dnode);
+      push @{$self->{extended}}, AnyEvent::XMPP::Util::DataForm->new->from_node ($dnode);
    }
 }
 
@@ -120,7 +120,7 @@ sub has_feature { exists $_[0]->{features}->{$_[1]} }
 =item B<extended>
 
 This method returns a list of service discovery
-extensions as L<AnyEvent::XMPP::Ext::DataForm> objects.
+extensions as L<AnyEvent::XMPP::Util::DataForm> objects.
 See also XEP-0128.
 
 =cut

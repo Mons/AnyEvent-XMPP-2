@@ -1,11 +1,11 @@
-package AnyEvent::XMPP::Ext::DataForm;
+package AnyEvent::XMPP::Util::DataForm;
 use strict;
 no warnings;
 use AnyEvent::XMPP::Namespaces qw/xmpp_ns/;
 
 =head1 NAME
 
-AnyEvent::XMPP::Ext::DataForm - XEP-0004 DataForm
+AnyEvent::XMPP::Util::DataForm - XEP-0004 DataForm
 
 =head1 SYNOPSIS
 
@@ -18,7 +18,7 @@ It also handles the special C<FORM_TYPE> hidden field according to XEP-0068.
 
 =over 4
 
-=item B<new (%args)>
+=item my $df = AnyEvent::XMPP::Util::DataForm->new (%args)
 
 =cut
 
@@ -156,7 +156,7 @@ sub from_node {
 
 This method initializes this form with default answers and
 other necessary fields from C<$request_form>, which must be
-of type L<AnyEvent::XMPP::Ext::DataForm> or compatible.
+of type L<AnyEvent::XMPP::Util::DataForm> or compatible.
 
 The result will be a form with a copy of all fields which are not of
 type C<fixed>. The fields will also have the default value copied over.
