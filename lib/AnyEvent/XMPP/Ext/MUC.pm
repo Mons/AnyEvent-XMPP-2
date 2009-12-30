@@ -29,9 +29,18 @@ AnyEvent::XMPP::Ext::MUC - XEP-0045: Multi-User Chat
       }
    );
 
-   $muc->join ($mucjid);
+   $muc->join ($resjid, $mucjid);
 
 =head1 DESCRIPTION
+
+=head1 DEPENDENCIES
+
+This extension requires the L<AnyEvent::XMPP::Ext::Presence>
+extension.
+
+=cut
+
+sub required_extensions { 'AnyEvent::XMPP::Ext::Presence' }
 
 =head1 METHODS
 
@@ -39,9 +48,7 @@ AnyEvent::XMPP::Ext::MUC - XEP-0045: Multi-User Chat
 
 =cut
 
-sub required_extensions { 'AnyEvent::XMPP::Ext::Presence' }
-
-sub disco_feature { }
+sub disco_feature { } # TODO
 
 sub init {
    my ($self) = @_;

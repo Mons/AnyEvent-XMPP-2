@@ -220,7 +220,7 @@ sub ping {
    ));
 }
 
-=item B<ignore_pings ($bool)>
+=item $ext->ignore_pings ($bool)
 
 This method is mostly for testing, it tells this extension
 to ignore all ping requests and will prevent any response from

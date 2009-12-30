@@ -121,6 +121,11 @@ For example XEP-0055 (Jabber Search) or also In-band registration.
 This extension allows you to send service discovery requests and
 define a set of discoverable information. See also L<AnyEvent::XMPP::Ext::Disco>.
 
+=item XEP-0045 - Multi-User Chat (Version ?)
+
+This extension implements basic functionality for multi-user chats.
+See also L<AnyEvent::XMPP::Ext::MUC>.
+
 =item XEP-0054 - vcard-temp (Version 1.1)
 
 This extension allows the retrieval and storage of XMPP vcards
@@ -188,9 +193,8 @@ C<samples/simple_component>.
 
 =item XEP-0153 - vCard-Based Avatars (Version 1.0)
 
-This extension allows to store and retrieve avatars from vcards.
-On top of that it will also signal others that you support avatars and
-that they might have changed. See L<AnyEvent::XMPP::Ext::VCard>.
+Only partially support - mostly for decoding/encoding - is currently available,
+see also L<AnyEvent::XMPP::Ext::VCard>.
 
 =item XEP-0199 - XMPP Ping (Version 1.0)
 

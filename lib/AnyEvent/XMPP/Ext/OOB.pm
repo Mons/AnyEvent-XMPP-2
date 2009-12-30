@@ -134,7 +134,7 @@ sub init {
    );
 }
 
-=item B<reply_success ($node)>
+=item $ext->reply_success ($node)
 
 This method replies to the sender of the oob that the URL
 was retrieved successfully.
@@ -150,7 +150,7 @@ sub reply_success {
    $self->{extendable}->send (new_reply ($node));
 }
 
-=item B<reply_failure ($node, $type)>
+=item $ext->reply_failure ($node, $type)
 
 This method replies to the sender that either the transfer was rejected
 or it was not fount.
@@ -176,7 +176,7 @@ sub reply_failure {
       ], type => 'error'));
 }
 
-=item B<send_url ($src, $jid, $url, $desc, $cb)>
+=item $ext->send_url ($src, $jid, $url, $desc, $cb)
 
 This method sends a out of band file transfer request to C<$jid> from
 your resource C<$src>.
@@ -235,6 +235,17 @@ If you fetched the file successfully you have to call C<reply_success>.
 If you want to reject the file or couldn't get it call C<reply_failure>.
 
 =back
+
+=head1 AUTHOR
+
+Robin Redeker, C<< <elmex at ta-sa.org> >>, JID: C<< <elmex at jabber.org> >>
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2009 Robin Redeker, all rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
 
 =cut
 

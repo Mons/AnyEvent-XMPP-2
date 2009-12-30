@@ -16,6 +16,8 @@ X replace Net::LibIDN with Unicode::Stringprep and Net::IDN::Encode possibly?
    - AnyEvent::XMPP::Ext    - review after rewrote other extensions.
    - AnyEvent::XMPP::Ext::* - skim over them after finished other docs.
    - AE::XMPP::IM, AE::XMPP::Stream::Client
+   - AE::XMPP::Ext::MUC
+   - AE::XMPP::Ext::Presence
 
 - write extensions to new API:
    - Ext::Pubsub

@@ -23,6 +23,7 @@ extension.
 =cut
 
 sub required_extensions { 'AnyEvent::XMPP::Ext::LangExtract' } 
+
 sub autoload_extensions { 'AnyEvent::XMPP::Ext::LangExtract' }
 
 =head1 METHODS
