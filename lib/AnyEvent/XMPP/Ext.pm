@@ -20,7 +20,7 @@ and others).
 This class inherits a callback API from the L<Object::Event> class. Please consult
 the documentation of L<Object::Event> for further information about that API.
 
-=head1 Methods
+=head1 METHODS
 
 =over 4
 
@@ -96,7 +96,7 @@ sub disco_feature { }
 
 =back
 
-=head1 Supportet extensions
+=head1 SUPPORTET XMPP EXTENSIONS
 
 This is the list of supported XMPP extensions:
 

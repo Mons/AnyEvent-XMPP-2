@@ -31,19 +31,18 @@ AnyEvent::XMPP::Ext::Disco - Service discovery manager class for XEP-0030
 
 =head1 DESCRIPTION
 
-This module represents a service discovery manager class.  You make instances
-of this class and get a handle to send discovery requests like described in
-XEP-0030.
+This extension represents a service discovery manager.
 
 This class is derived from L<AnyEvent::XMPP::Ext> and can be added as extension
 to objects that implement the L<AnyEvent::XMPP::Extendable> interface or derive
 from it.
 
-This extension will also fetch information about the registered extensions on the
-extended object and generate discovery information according to their feedback.
+This extension will fetch information about the registered extensions on the
+extended object (that is extended using the L<AnyEvent::XMPP::Extension> API)
+and generate discovery information according to their feedback.
 
 To provide content for item discoveries and other things for disco nodes there
-are the three events C<identities>, C<features> and C<items> to let you fullfil
+are the three events C<identities>, C<features> and C<items> to let you handle
 disco queries which are directed to you.
 
 =head1 METHODS
@@ -52,8 +51,8 @@ disco queries which are directed to you.
 
 =cut
 
-sub disco_feature_standard { ( xmpp_ns ('data_form') ) }
-sub disco_feature { ( xmpp_ns ('disco_info'), xmpp_ns ('disco_items') ) }
+# the data_form namespace is always supported by AnyEvent::XMPP!
+sub disco_feature { ( xmpp_ns ('disco_info'), xmpp_ns ('disco_items'), xmpp_ns ('data_form') ) }
 
 sub init {
    my ($self) = @_;
@@ -170,7 +169,7 @@ sub enable_feature {
 
 =item $disco->disable_feature ($uri, $uri2, ...)
 
-This method enables the feature C<$uri>, where C<$uri>
+This method disables the feature C<$uri>, where C<$uri>
 should be one of the values from the B<Name> column on:
 
    http://www.xmpp.org/registrar/disco-features.html
@@ -212,7 +211,7 @@ sub reply_with_disco_info {
 
       $self->event (identities => $node, $dnode, $identities, \$name);
       $self->event (features   => $node, $dnode, $features);
-      
+
       my (@identities, @features);
 
       for my $iden (@$identities) {

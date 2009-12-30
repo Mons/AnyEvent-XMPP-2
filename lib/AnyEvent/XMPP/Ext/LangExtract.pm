@@ -48,7 +48,7 @@ argument.
 
 =head1 METHODS
 
-=over 4
+There are currently no methods you can call on this extension.
 
 =cut
 
@@ -70,8 +70,6 @@ sub init {
       },
    );
 }
-
-=back
 
 =head1 AUTHOR
 

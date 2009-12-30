@@ -27,6 +27,17 @@ AnyEvent::XMPP::Ext::MsgTracker - Chat session message tracker
 
 =head1 DESCRIPTION
 
+This extension implements tracking of the destination of chat messages between
+two persons in XMPP. The problem with private chats in XMPP is, that you should
+reply to the I<full> JID that you received the last message from in private
+chats.  This is necessary due to the fact the messages to the I<bare> JID are
+only routed to the resource with the highest priority.
+
+To use this you should use the C<send> method of the extension for private
+communications.
+
+The C<set> method can be used to preset or override tracking decisions of this
+extension.
 
 =head1 DEPENDENCIES
 
@@ -35,7 +46,7 @@ extension.
 
 =cut
 
-sub required_extensions { 'AnyEvent::XMPP::Ext::Presence' } 
+sub required_extensions { 'AnyEvent::XMPP::Ext::Presence' }
 
 =head1 METHODS
 
@@ -84,6 +95,13 @@ sub init {
    );
 }
 
+=item $ext->set ($resjid, $fulljid)
+
+This method can be used to tell the extension to track the full JID C<$fulljid>
+for the client connection that connects the C<$resjid> resource.
+
+=cut
+
 sub set {
    my ($self, $resjid, $fulljid) = @_;
 
@@ -92,6 +110,14 @@ sub set {
 
    $self->destination_change ($resjid, $bare, $fulljid);
 }
+
+=item $ext->send ($node)
+
+This method will send the XMPP message in C<$node> that must be an
+L<AnyEvent::XMPP::Node> instance. The C<to> field of the stanza will be updated
+from the bare JID to the full JID when the bare JID is being tracked.
+
+=cut
 
 sub send {
    my ($self, $node) = @_;

@@ -104,7 +104,7 @@ sub analyze_delay {
    }
 }
 
-=item $delay->enable_unix_timestamp
+=item $delay->enable_unix_timestamp ()
 
 Enables automatic extraction of the unix timestamp (see also
 C<xmpp_datetime_as_timestamp> function of L<AnyEvent::XMPP::Util>) and storage
