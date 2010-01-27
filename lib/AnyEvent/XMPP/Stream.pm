@@ -132,6 +132,7 @@ sub new {
       stream_end_timeout       => 30,
       hash                     => { },
       @_,
+      enable_methods           => 1,
    );
 
    $self->{default_stream_namespace} = xmpp_ns_maybe ($self->{default_stream_namespace});
