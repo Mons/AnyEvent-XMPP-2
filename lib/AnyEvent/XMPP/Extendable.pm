@@ -3,6 +3,7 @@ use strict;
 no warnings;
 use Carp qw/croak/;
 use base qw/Object::Event/;
+use Scalar::Util qw(weaken);
 
 =head1 NAME
 
@@ -74,8 +75,8 @@ Is the same as this:
 =cut
 
 sub add_ext {
-   my ($self, $short) = @_;
-   $self->add_extension ('AnyEvent::XMPP::Ext::' . $short);
+   my ($self, $short, @args) = @_;
+   $self->add_extension ('AnyEvent::XMPP::Ext::' . $short, @args);
 }
 
 =item $extendable->add_extension ($full_classname)
@@ -94,7 +95,7 @@ with C<get_ext>/C<get_extension> (see below).
 =cut
 
 sub add_extension {
-   my ($self, $pkg) = @_;
+   my ($self, $pkg, @args) = @_;
 
    return $self->{_ext_ids}->{$pkg} if $self->{_ext_ids}->{$pkg};
 
@@ -118,7 +119,7 @@ sub add_extension {
    }
 
    $self->{_ext_ids}->{$pkg}
-      = $pkg->new (extendable => $self)
+      = $pkg->new (extendable => $self, @args)
 }
 
 =item $extendable->get_ext ($shortcut)
