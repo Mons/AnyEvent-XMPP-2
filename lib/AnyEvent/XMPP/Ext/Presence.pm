@@ -299,6 +299,8 @@ sub _int_upd_presence {
 
    unless (_eq_pres ($prev, $new)) {
       $self->event ($ev => $resjid, bare_jid ($jid), $prev, $new);
+   } else {
+      $self->event (notify => $resjid, bare_jid ($jid), $prev, $new);
    }
 }
 
@@ -562,6 +564,18 @@ sub _int_handle_subscription {
 
       $self->subscription_request ($resjid, bare_jid ($from), $status);
    }
+   elsif ($type eq 'subscribed' ) {
+      $self->subscribed ($resjid, bare_jid ($from));
+   }
+   elsif ($type eq 'unsubscribed' ) {
+      $self->unsubscribed ($resjid, bare_jid ($from));
+   }
+   elsif ($type eq 'probe' ) {
+      $self->probe ($resjid, bare_jid ($from));
+   }
+   else {
+      warn "unhandled subscription of type $type\n";
+   }
 }
 
 sub send_subscription_request {
@@ -676,6 +690,8 @@ sub subscription_request : event_cb { }
 sub subscribed : event_cb { }
 
 sub unsubscribed : event_cb { }
+
+sub probe : event_cb {}
 
 =back
 
