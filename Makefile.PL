@@ -26,7 +26,7 @@ WriteMakefile(
     ABSTRACT_FROM       => 'lib/AnyEvent/XMPP.pm',
     PL_FILES            => {},
     PREREQ_PM => {
-        'AnyEvent'           => 0,
+        'AnyEvent'           => 5.23,
         'AnyEvent::Socket'   => 0,
         'AnyEvent::Handle'   => 0,
         'Scalar::Util'       => 0,
