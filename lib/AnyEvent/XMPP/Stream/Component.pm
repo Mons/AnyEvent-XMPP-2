@@ -135,6 +135,7 @@ sub new {
          return if $node->eq (stream => 'stream');
 
          unless (defined $node->attr ('from')) {
+            return if $node->name eq 'iq';
             $node->attr (from => $self->jid);
          }
       }
