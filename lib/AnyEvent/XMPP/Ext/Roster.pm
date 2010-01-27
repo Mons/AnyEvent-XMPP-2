@@ -62,6 +62,11 @@ AnyEvent::XMPP::Ext::Roster - RFC 3921 Roster handling
 
 =head1 DESCRIPTION
 
+This extension handles client roster management. It can retrieve the roster
+for an resource, keep it up to date and modify it.
+
+To enable automatic roster fetching see the C<auto_fetch> method below.
+
 =head1 METHODS
 
 =over 4
@@ -158,6 +163,14 @@ sub _handle_push {
    $self->{extendable}->send (new_reply ($node));
 }
 
+=item $rost->fetch ($jid)
+
+This method will initiate a roster fetch for the full JID C<$jid>.  To receive
+the contents or possible errors please have a look in the L<EVENTS> section
+below.
+
+=cut
+
 sub fetch {
    my ($self, $jid) = @_;
 
@@ -177,6 +190,16 @@ sub fetch {
    ));
 }
 
+=item $rost->auto_fetch ()
+
+This method will enable automatic fetching of the roster for newly connected
+resources/accounts. It will also fetch the roster for all currently connected
+resources/accounts.
+
+See the L<EVENTS> section below for more information.
+
+=cut
+
 sub auto_fetch {
    my ($self) = @_;
 
@@ -185,6 +208,16 @@ sub auto_fetch {
    $self->fetch ($_) for keys %{$self->{res}};
 }
 
+=item $rost->remove ($jid, $item_jid, [$cb->($error)])
+
+This method will remove the roster entry with the C<$item_jid> from the roster
+of the resource C<$jid>.
+If successful the (optional) callback C<$cb> will be
+called with an undefined value as first argument. If it failed the first
+argument will be an error object.
+
+=cut
+
 sub remove {
    my ($self, $jid, $item_jid, $cb) = @_;
 
@@ -192,7 +225,7 @@ sub remove {
 
    $self->{extendable}->send (new_iq (
       set => src => $jid,
-      create => { node => { 
+      create => { node => {
          dns => 'roster', name => 'query', childs => [
             { name => 'item', attrs => [ jid => $item_jid, subscription => 'remove' ] }
          ]
@@ -203,6 +236,36 @@ sub remove {
       }
    ));
 }
+
+=item $rost->set ($jid, $item, [$cb->($error)])
+
+This method will update or set a roster C<$item> of the resource C<$jid>.  If
+successful the (optional) callback C<$cb> will be called with an undefined
+value as first argument. If it failed the first argument will be an error
+object.  C<$item> is a data structure which should look like this:
+
+   {
+      jid  => $contact_jid,
+      name => $contact_name,
+      groups => [$groupname_1, $groupname_2, ...]
+   }
+
+Here an example:
+
+   $rost->set ("elmex@jabber.org/bummskraut", {
+      jid    => "stpeter@jabber.org",
+      name   => "S.T. Peter",
+      groups => ["Jabber Devs"],
+   }, sub {
+      my ($error) = @_;
+      if ($error) {
+         warn "Couldn't set stpeter contact item: "
+              . $error->string
+              . "\n";
+      }
+   });
+
+=cut
 
 sub set {
    my ($self, $jid, $item, $cb) = @_;
@@ -229,6 +292,13 @@ sub set {
    ));
 }
 
+=item my (@items) = $rost->items ($jid)
+
+This method returns all roster items for the resource C<$jid> as list.  Each
+item will have the structure that is described above for the C<set> method.
+
+=cut
+
 sub items {
    my ($self, $jid) = @_;
    $jid = stringprep_jid $jid;
@@ -236,10 +306,33 @@ sub items {
    values %{$self->{r}->{$jid}};
 }
 
+=item my (@jids) = $rost->item_jids ($jid)
+
+This method returns all contact JIDs that are on the roster of the resource C<$jid>.
+
+=cut
+
 sub item_jids {
    my ($self, $jid) = @_;
    map { $_->{jid} } $self->items ($jid)
 }
+
+=item my $roster = $rost->get ($jid)
+
+This method will return a hash reference containing the roster contacts for the
+resource C<$jid>.  The keys will be the contact jids and the values the item
+structure described for the C<set> method above.
+
+If no roster is present undef is returned.
+
+=item my $item = $rost->get ($jid, $item_jid)
+
+This method will return the item for the contact jid C<$item_jid> for the
+resource C<$jid>.
+
+If not present for any reason undef is returned.
+
+=cut
 
 sub get {
    my ($self, $jid, $item_jid) = @_;
@@ -254,6 +347,13 @@ sub get {
    $self->{r}->{$jid}->{$item_jid}
 }
 
+=item my $bool = $rost->has_roster_for ($jid)
+
+Returns true if the roster for the resource C<$jid> is fetched and
+present. False otherwise.
+
+=cut
+
 sub has_roster_for {
    my ($self, $jid) = @_;
    exists $self->{r}->{$jid}
@@ -263,9 +363,16 @@ sub has_roster_for {
 
 =head1 EVENTS
 
+These are the events that will keep you up to date w.r.t. roster fetches,
+changes and disconnects.
+
 =over 4
 
 =item fetched => $jid, $roster
+
+This event is emitted whenever a roster is fetched. The roster, as returned
+from the one argument C<get> method (see above) is given in C<$roster>.  The
+resource it belongs to is given in C<$jid>.
 
 =cut
 
@@ -273,11 +380,24 @@ sub fetched : event_cb { }
 
 =item change => $jid, $item_jid, $old_item, $new_item
 
+This event is emitted whenever an item with the jid C<$item_jid> on the roster
+for the resource C<$jid> changes.
+
+C<$old_item> will be undefined and C<$new_item> defined when a new roster item
+was added. C<$old_item> will be defined and C<$new_item> undefined when a
+roster item was removed. Both are defined when the item just changed.
+
+The data format of C<$old_item> and C<$new_item> are explained in the C<set>
+method above.
+
 =cut
 
 sub change : event_cb { }
 
 =item gone => $jid
+
+This event is emitted whenever a roster is not available anymore for the
+resource C<$jid>. For instance when the resource got disconnected.
 
 =cut
 
