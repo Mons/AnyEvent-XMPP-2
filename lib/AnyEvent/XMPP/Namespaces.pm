@@ -1,3 +1,4 @@
+
 package AnyEvent::XMPP::Namespaces;
 no warnings;
 use strict;
@@ -19,7 +20,9 @@ our %NAMESPACES = (
 
    client      => 'jabber:client',
    component   => 'jabber:component:accept',
+   gateway     => 'jabber:iq:gateway',
    roster      => 'jabber:iq:roster',
+   rosterx     => 'http://jabber.org/protocol/rosterx',
    register    => 'jabber:iq:register',
    version     => 'jabber:iq:version',
    auth        => 'jabber:iq:auth',
@@ -47,6 +50,9 @@ our %NAMESPACES = (
    pubsub      => 'http://jabber.org/protocol/pubsub',
    pubsub_own  => 'http://jabber.org/protocol/pubsub#owner',
    pubsub_ev   => 'http://jabber.org/protocol/pubsub#event',
+
+   xhtml_im    => 'http://jabber.org/protocol/xhtml-im',
+   xhtml       => 'http://www.w3.org/1999/xhtml',
 );
 
 =head1 NAME
