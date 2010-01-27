@@ -3,14 +3,6 @@
 - make ssl verify switchable, remove ability to give context to starttls.
 - make AnyEvent::XMPP::IM the promised short-cut solution.
 
-X replace Net::LibIDN with Unicode::Stringprep and Net::IDN::Encode possibly?
-  X maybe just use Unicode::Stringprep in case we have non-ascii JIDs.
-  X => maybe write a test to test my implementation against Net::LibIDN over the
-       unicode range.
-  - implement ascii parts of IDNA myself and if it gets more complicated
-    ignore it for now. maybe even copy code from Net::IDN::Encode or
-    failover to Net::LibIDN.
-
 - update docs:
    - AnyEvent::XMPP         - rewrite after other docs are done (mostly done)
    - AnyEvent::XMPP::Ext    - review after rewrote other extensions. (mostly done)
@@ -22,37 +14,22 @@ X replace Net::LibIDN with Unicode::Stringprep and Net::IDN::Encode possibly?
 - write extensions to new API:
    - Ext::Pubsub
    - Ext::VCardAvatar
-   X Ext::VCard
 
-
-X make ::XMPP::Node store the prefixes of the namespaces and
-  have them accessible.
 - write tests for Ext::MUC
   - muc should timeout the parts
     and remove internal things. or BS should do that...
   - check that the part timeout works!
-X write Ext::Delay
-  X write tests for it!
 X write Ext::MsgTracker
   - write tests for it!
-X finish test: t/z_09_pres_prio.t
 - document new extensions
 - find solution for sorting out which presence belong to MUC
 
 - document new_* functions in Util
    - rewrite documentation about add() and simxml().
 - cleanup IM w.r.t. jid/account handling
-X keep an eye on disco_feature stuff.
 - fix MUC documentation!
    - make MUC auto-ping itself, to detect erros when the other end
      restarts.
-X make the MUC extension not be tied to a specific connection.
-  Let it discover new connections itself.
-  => for this the join_room function might need a connection argument
-     to discover the right connection. => maybe use the %args hash for this,
-     as the default should be 'the first' connection we can grab.
-  => think about get_room and the implications in general that 'multiple'
-     connections are handled by one extension.
 - vcard retrieve sends out presence, but the 'last sent presence' info
   isn't available in the connection or to the vcard extension.
   => introduce storing the 'last sent presence' and offer a 'send_presence_update'
@@ -68,24 +45,15 @@ X make the MUC extension not be tied to a specific connection.
 - add nick_change to documentation
 - implement more of XEP-0045: Multi-User Chat
 - write a tutorial for simxml
-X improve the SSL/TLS handling
 - make more tests
    - data forms
    - jabber component
 - fix the inaviodable memoryleaks with the callbacks
   the circular object structs.
 - put some serious stuff in the synopsises
-X look at attribute namespace preservation! (if they got
-  prefixes, how to parse this with expat?
-  see also http://www.w3.org/TR/REC-xml-names/#scoping-defaulting )
-X fix problem that xml::writer writes after <stream/> ahs been written
-  X reproduce by conflicting resources!
-X test the xml parse error object somehow!
+ test the xml parse error object somehow!
 - add context field to IQ error for all the places origin from IQ errors
   (bind_error, session_error, ...)
-X AnyEvent::XMPP::Client
-  X find a way to distinguish presences from JIDs that
-    are in multiple account's roster.
 - AnyEvent::XMPP missing functionality to be RFC 3920 conform:
    - improve error handling for SASL to
      support retries as specified in RFC 3920.
@@ -111,8 +79,3 @@ long term?
 X Implement XEP-0082: XMPP Date and Time Profiles
    W provide maybe _to functions for the old format,
      it's still in use out there
-X make dns resolution async!
-X keep an eye on:
-   X TLS: implemented, just do some extensive testing WRT blocking,
-          i don't trust the current way the watchers are handled,
-          i'm in fear of deadlocks...
