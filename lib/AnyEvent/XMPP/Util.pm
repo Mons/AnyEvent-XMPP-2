@@ -697,6 +697,7 @@ C<$type> can be one of these values:
    'unsubscribe'
    'subscribed'
    'unsubscribed'
+   'probe'
 
 C<$show> will be the presence status, which has to be one of these:
 
