@@ -32,8 +32,9 @@ AnyEvent::XMPP::Stream - XMPP client stream (RFC 3920).
 
    my $con =
       AnyEvent::XMPP::Stream::Client->new (
-         jid => "abc@jabber.org/AnyEvent::XMPP",
-         password => 'secret123',
+         jid             => "abc@jabber.org/AnyEvent::XMPP",
+         password        => 'secret123',
+         connect_timeout => 300,
       );
 
    $con->reg_cb (stream_ready => sub { print "XMPP stream ready!\n" });

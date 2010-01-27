@@ -6,6 +6,7 @@ use Unicode::Stringprep;
 use AnyEvent::Socket;
 use AnyEvent::XMPP::Namespaces qw/xmpp_ns_maybe xmpp_ns/;
 use AnyEvent::XMPP::Error::Stanza;
+use AnyEvent::Util;
 use Time::Local;
 require Exporter;
 our @EXPORT_OK = qw/resourceprep nodeprep prep_join_jid join_jid
@@ -142,7 +143,7 @@ sub prep_join_jid {
       $jid .= "$node\@";
    }
 
-   $domain = $domain; # TODO: apply IDNA!
+   $domain = AnyEvent::Util::idn_to_ascii ($domain); # TODO: apply IDNA!
    $jid .= $domain;
 
    if ($resource ne '') {
@@ -172,12 +173,12 @@ sub join_jid {
    $jid
 }
 
-=item ($user, $host, $resource) =  split_jid ($jid)
+=item ($user, $domain, $resource) =  split_jid ($jid)
 
 This function splits up the C<$jid> into user/node, domain and resource
 part and will return them as list.
 
-   my ($user, $host, $res) = split_jid ($jid);
+   my ($user, $domain, $res) = split_jid ($jid);
 
 =cut
 
@@ -224,7 +225,10 @@ sub res_jid    { (split_jid ($_[0]))[2] }
 sub prep_node_jid {
    my $node = node_jid ($_[0]); defined $node ? nodeprep ($node) : undef
 }
-sub prep_domain_jid { domain_jid ($_[0]) }
+sub prep_domain_jid {
+   my $domain = $_[0];
+   defined $domain ? AnyEvent::Util::idn_to_ascii ($domain) : undef
+}
 sub prep_res_jid    {
    my $res = res_jid ($_[0]); defined $res ? resourceprep ($res) : undef
 }
