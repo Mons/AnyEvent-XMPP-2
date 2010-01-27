@@ -17,15 +17,15 @@ AnyEvent::XMPP::Ext::Roster - RFC 3921 Roster handling
 
    $rost->reg_cb (
       fetched => sub {
-         my ($rost, $jid, $roster) = @_;
+         my ($rost, $resjid, $roster) = @_;
          # when the roster was fetched
       },
       change => sub {
-         my ($rost, $jid, $item_jid, $old_item, $new_item) = @_;
+         my ($rost, $resjid, $item_jid, $old_item, $new_item) = @_;
          # when a roster item was updated
       },
       gone => sub {
-         my ($rost, $jid) = @_;
+         my ($rost, $resjid) = @_;
          # emitted when the roster is not available anymore
       }
    );
@@ -208,10 +208,10 @@ sub auto_fetch {
    $self->fetch ($_) for keys %{$self->{res}};
 }
 
-=item $rost->remove ($jid, $item_jid, [$cb->($error)])
+=item $rost->remove ($resjid, $item_jid, [$cb->($error)])
 
 This method will remove the roster entry with the C<$item_jid> from the roster
-of the resource C<$jid>.
+of the resource C<$resjid>.
 If successful the (optional) callback C<$cb> will be
 called with an undefined value as first argument. If it failed the first
 argument will be an error object.
@@ -219,12 +219,12 @@ argument will be an error object.
 =cut
 
 sub remove {
-   my ($self, $jid, $item_jid, $cb) = @_;
+   my ($self, $resjid, $item_jid, $cb) = @_;
 
    $item_jid = $item_jid->{jid} if ref $item_jid;
 
    $self->{extendable}->send (new_iq (
-      set => src => $jid,
+      set => src => $resjid,
       create => { node => {
          dns => 'roster', name => 'query', childs => [
             { name => 'item', attrs => [ jid => $item_jid, subscription => 'remove' ] }
@@ -237,9 +237,9 @@ sub remove {
    ));
 }
 
-=item $rost->set ($jid, $item, [$cb->($error)])
+=item $rost->set ($resjid, $item, [$cb->($error)])
 
-This method will update or set a roster C<$item> of the resource C<$jid>.  If
+This method will update or set a roster C<$item> of the resource C<$resjid>.  If
 successful the (optional) callback C<$cb> will be called with an undefined
 value as first argument. If it failed the first argument will be an error
 object.  C<$item> is a data structure which should look like this:
@@ -268,10 +268,10 @@ Here an example:
 =cut
 
 sub set {
-   my ($self, $jid, $item, $cb) = @_;
+   my ($self, $resjid, $item, $cb) = @_;
 
    $self->{extendable}->send (new_iq (
-      set => src => $jid,
+      set => src => $resjid,
       create => { node => { 
          dns => 'roster', name => 'query', childs => [
             { name => 'item', attrs => [
@@ -292,71 +292,71 @@ sub set {
    ));
 }
 
-=item my (@items) = $rost->items ($jid)
+=item my (@items) = $rost->items ($resjid)
 
-This method returns all roster items for the resource C<$jid> as list.  Each
+This method returns all roster items for the resource C<$resjid> as list.  Each
 item will have the structure that is described above for the C<set> method.
 
 =cut
 
 sub items {
-   my ($self, $jid) = @_;
-   $jid = stringprep_jid $jid;
-   return () unless exists $self->{r}->{$jid};
-   values %{$self->{r}->{$jid}};
+   my ($self, $resjid) = @_;
+   $resjid = stringprep_jid $resjid;
+   return () unless exists $self->{r}->{$resjid};
+   values %{$self->{r}->{$resjid}};
 }
 
-=item my (@jids) = $rost->item_jids ($jid)
+=item my (@jids) = $rost->item_jids ($resjid)
 
-This method returns all contact JIDs that are on the roster of the resource C<$jid>.
+This method returns all contact JIDs that are on the roster of the resource C<$resjid>.
 
 =cut
 
 sub item_jids {
-   my ($self, $jid) = @_;
-   map { $_->{jid} } $self->items ($jid)
+   my ($self, $resjid) = @_;
+   map { $_->{jid} } $self->items ($resjid)
 }
 
-=item my $roster = $rost->get ($jid)
+=item my $roster = $rost->get ($resjid)
 
 This method will return a hash reference containing the roster contacts for the
-resource C<$jid>.  The keys will be the contact jids and the values the item
+resource C<$resjid>.  The keys will be the contact jids and the values the item
 structure described for the C<set> method above.
 
 If no roster is present undef is returned.
 
-=item my $item = $rost->get ($jid, $item_jid)
+=item my $item = $rost->get ($resjid, $item_jid)
 
 This method will return the item for the contact jid C<$item_jid> for the
-resource C<$jid>.
+resource C<$resjid>.
 
 If not present for any reason undef is returned.
 
 =cut
 
 sub get {
-   my ($self, $jid, $item_jid) = @_;
-   $jid = stringprep_jid $jid;
-   return undef unless exists $self->{r}->{$jid};
+   my ($self, $resjid, $item_jid) = @_;
+   $resjid = stringprep_jid $resjid;
+   return undef unless exists $self->{r}->{$resjid};
    unless (defined $item_jid) {
-      return $self->{r}->{$jid};
+      return $self->{r}->{$resjid};
    }
 
    $item_jid = stringprep_jid $item_jid;
 
-   $self->{r}->{$jid}->{$item_jid}
+   $self->{r}->{$resjid}->{$item_jid}
 }
 
-=item my $bool = $rost->has_roster_for ($jid)
+=item my $bool = $rost->has_roster_for ($resjid)
 
-Returns true if the roster for the resource C<$jid> is fetched and
+Returns true if the roster for the resource C<$resjid> is fetched and
 present. False otherwise.
 
 =cut
 
 sub has_roster_for {
-   my ($self, $jid) = @_;
-   exists $self->{r}->{$jid}
+   my ($self, $resjid) = @_;
+   exists $self->{r}->{$resjid}
 }
 
 =back
@@ -368,20 +368,20 @@ changes and disconnects.
 
 =over 4
 
-=item fetched => $jid, $roster
+=item fetched => $resjid, $roster
 
 This event is emitted whenever a roster is fetched. The roster, as returned
 from the one argument C<get> method (see above) is given in C<$roster>.  The
-resource it belongs to is given in C<$jid>.
+resource it belongs to is given in C<$resjid>.
 
 =cut
 
 sub fetched : event_cb { }
 
-=item change => $jid, $item_jid, $old_item, $new_item
+=item change => $resjid, $item_jid, $old_item, $new_item
 
 This event is emitted whenever an item with the jid C<$item_jid> on the roster
-for the resource C<$jid> changes.
+for the resource C<$resjid> changes.
 
 C<$old_item> will be undefined and C<$new_item> defined when a new roster item
 was added. C<$old_item> will be defined and C<$new_item> undefined when a
@@ -394,20 +394,20 @@ method above.
 
 sub change : event_cb { }
 
-=item gone => $jid
+=item gone => $resjid
 
 This event is emitted whenever a roster is not available anymore for the
-resource C<$jid>. For instance when the resource got disconnected.
+resource C<$resjid>. For instance when the resource got disconnected.
 
 =cut
 
 sub gone : event_cb { }
 
-=item fetch_error => $jid, $error
+=item fetch_error => $resjid, $error
 
 This event is emitted when a roster fetch resulted in an error.
 C<$error> is an L<AnyEvent::XMPP::Error::IQ> object and
-C<$jid> is the resource on which the fetch failed.
+C<$resjid> is the resource on which the fetch failed.
 
 =cut
 
