@@ -219,7 +219,7 @@ sub send_url {
 
 =head1 EVENTS
 
-These events can be registered to whith C<reg_cb>:
+These events can be registered to whit C<reg_cb>:
 
 =over 4
 

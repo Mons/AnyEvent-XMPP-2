@@ -9,6 +9,7 @@
    - AnyEvent::XMPP::Ext::* - skim over them after finished other docs (still some undocumented ones)
       - AE::XMPP::Ext::MUC
       - AE::XMPP::Ext::Presence
+      - AE::XMPP::Ext::Roster
    - AE::XMPP::IM, AE::XMPP::Stream::Client
 
 - write extensions to new API:

@@ -260,7 +260,7 @@ The vcard extension will emit these events:
 =item retrieve_vcard_error => $iq_error
 
 When a vCard retrieval was not successful, this event is emitted.
-This is neccessary as some retrievals may happen automatically.
+This is necessary as some retrievals may happen automatically.
 
 =item vcard => $jid, $vcard
 

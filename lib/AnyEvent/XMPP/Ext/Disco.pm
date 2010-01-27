@@ -183,22 +183,6 @@ sub disable_feature {
    delete $self->{hardcoded_feat}->{$_} for @feature;
 }
 
-sub write_feature {
-   my ($self, $w, $var) = @_;
-
-   $w->emptyTag ([xmpp_ns ('disco_info'), 'feature'], var => $var);
-}
-
-sub write_identity {
-   my ($self, $w, $cat, $type, $name) = @_;
-
-   $w->emptyTag ([xmpp_ns ('disco_info'), 'identity'],
-      category => $cat,
-      type     => $type,
-      (defined $name ? (name => $name) : ())
-   );
-}
-
 sub reply_with_disco_info {
    my ($self, $node) = @_;
 
