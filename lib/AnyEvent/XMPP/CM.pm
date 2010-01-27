@@ -48,6 +48,12 @@ as timeout for the first retry.
 
 Default: 5 seconds
 
+=item connect_timeout => $seconds
+
+This is the connect and authentication timeout that is used for new
+connections. The default is 300 seconds. If you pass 0 seconds or undefined
+no timeout will be installed.
+
 =back
 
 =cut
@@ -57,6 +63,7 @@ sub new {
    my $class = ref($this) || $this;
    my $self  = $class->SUPER::new (
       initial_reconnect_interval => 5,
+      connect_timeout            => 300,
       heap => { },
       @_,
    );
@@ -190,8 +197,14 @@ sub spawn_connection {
 
    $jid = prep_bare_jid $jid;
 
+   my %con_args;
+
+   if ($self->{connect_timeout}) {
+      $con_args{connect_timeout} = $self->{connect_timeout};
+   }
+
    my $conhdl = $self->{conns}->{$jid} =
-      AnyEvent::XMPP::Stream::Client->new (%{$self->{accs}->{$jid}});
+      AnyEvent::XMPP::Stream::Client->new (%con_args, %{$self->{accs}->{$jid}});
    $conhdl->{imhp}->{timeout} = $self->{initial_reconnect_interval};
 
    $self->spawned ($jid, $conhdl);

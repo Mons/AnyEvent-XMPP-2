@@ -400,6 +400,25 @@ concatenated with a '|' within, like this:
 
 sub attrs { $_[0]->[ATTRS] }
 
+=item B<elem_attrs>
+
+This method returns a hash reference which contains all attributes of the XMP
+element that have the same namespace as the element itself.
+
+=cut
+
+sub elem_attrs {
+   my $n    = $_[0];
+   my $e_ns = $n->[NS];
+   my %r;
+   for my $a (keys %{$n->[ATTRS]}) {
+      my ($ns, $name) = split /\|/o, $a, 2;
+      next unless $ns eq $e_ns;
+      $r{$name} = $n->[ATTRS]->{$a};
+   }
+   \%r
+}
+
 =item B<add ($node)>
 
 =item B<add ($ns, $el, $attrs)>
@@ -614,7 +633,7 @@ sub as_string {
 
    # take care of the attributes and their namespaces:
    for my $ak (sort keys %{$self->[ATTRS] || {}}) {
-      my ($ans, $name) = split /\|/, $ak;
+      my ($ans, $name) = split /\|/o, $ak, 2;
       my $pref;
 
       # mostly a hack around XMPP's crazy default namespacing:
