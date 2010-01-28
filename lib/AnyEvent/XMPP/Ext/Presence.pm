@@ -48,7 +48,6 @@ AnyEvent::XMPP::Ext::Presence - RFC 3921 Presence handling
 
    my @presences = $pres->highest_prio_presence ($my_jid);
    my @presences = $pres->highest_prio_presence ($my_jid, $bare_jid);
-   my @presences = $pres->highest_prio_presence ($my_jid, $full_jid);
 
    # to send out an presence update for a specific resource:
    $pres->update ($my_jid1);
@@ -90,6 +89,10 @@ SUBSCRIPTION METHODS. This is just for documentation purposes.
 See also below in the EVENTS sections about the events that are emitted
 on the L<AnyEvent::XMPP::Extendable> object that this extension extends.
 
+See documentation about the C<generated_presence> event if you want to attach
+further information to presence status messages that are emitted by this
+extension.
+
 =head1 DEPENDENCIES
 
 This extension autoloads and requires the L<AnyEvent::XMPP::Ext::LangExtract>
@@ -97,7 +100,7 @@ extension.
 
 =cut
 
-sub required_extensions { 'AnyEvent::XMPP::Ext::LangExtract' } 
+sub required_extensions { 'AnyEvent::XMPP::Ext::LangExtract' }
 sub autoload_extensions { 'AnyEvent::XMPP::Ext::LangExtract' }
 
 =head1 PRESENCE METHODS
@@ -312,10 +315,6 @@ method (see below).
 About the possible values for C<$show>, C<$status> and C<$prio> please consult
 the documentation of the C<new_presence> function of L<AnyEvent::XMPP::Util>.
 
-See documentation about the C<generated_presence> event if you want to attach
-further information to presence status messages that are emitted by this
-extension.
-
 =cut
 
 sub set_default {
@@ -326,6 +325,15 @@ sub set_default {
       $self->update ($_) unless exists $self->{set}->{$_};
    }
 }
+
+=item $pres->set_presence ($resjid, $show, $status, $prio)
+
+This method will set a specific presence for the resource C<$resjid>.
+
+About the possible values for C<$show>, C<$status> and C<$prio> please consult
+the documentation of the C<new_presence> function of L<AnyEvent::XMPP::Util>.
+
+=cut
 
 sub set_presence {
    my ($self, $jid, @args) = @_;
@@ -339,6 +347,19 @@ sub set_presence {
    $self->update ($jid)
 }
 
+=item $pres->send_directed ($resjid, $jid, $auto_update)
+
+This method will send a I<directed> presence from the resource C<$resjid>
+to the entity with the jid C<$jid>. Please consult the XMPP RFCs about
+specific semantics of directed presence. It basically lets you "share" your
+presence with someone who is not subscribed to your presence.
+
+If C<$auto_update> is omitted or false any presence changes you do will not be
+sent to C<$jid>. If C<$auto_update> is true, all presence changes are also
+shared with C<$jid>.
+
+=cut
+
 sub send_directed {
    my ($self, $resjid, $jid, $auto_update) = @_;
 
@@ -349,6 +370,13 @@ sub send_directed {
       $self->{direct}->{stringprep_jid ($resjid)}->{stringprep_jid ($jid)} = 1;
    }
 }
+
+=item $pres->update ([$resjid])
+
+This method will just resend presences. If C<$resjid> is defined only the
+presences for it's resource are resent to the server.
+
+=cut
 
 sub update {
    my ($self, $jid) = @_;
@@ -372,6 +400,15 @@ sub update {
    $self->_int_upd_presence ($jid, $jid, 1, _to_pres_struct ($node, $jid));
 }
 
+=item my (@pres) = $pres->my_presences ([$resjid]);
+
+This method returns the presences for your own resources.  If C<$resjid> is
+defined only the presences for that resource are returned.
+
+The presence structures in C<@pres> are described below in L<PRESENCE STRUCTURE>.
+
+=cut
+
 sub my_presences {
    my ($self, $resjid) = @_;
 
@@ -390,6 +427,29 @@ sub my_presences {
 
    @pres
 }
+
+=item my (@pres) = $pres->presences ($resjid)
+
+This method returns all presences that have been received
+by the resource C<$jid>.
+
+The presence structures in C<@pres> are described below in L<PRESENCE STRUCTURE>.
+
+=item my (@pres) = $pres->presences ($resjid, $bare_jid)
+
+This method returns all presences that have been received from the
+contact's C<$bare_jid> by the resource C<$resjid>.
+
+The presence structures in C<@pres> are described below in L<PRESENCE STRUCTURE>.
+
+=item my $pres = $pres->presences ($resjid, $full_jid)
+
+This method returns the presence structure for the contacts resource C<$full_jid>
+that has been received by the resource C<$resjid>.
+
+The presence structure in C<$pres> is described below in L<PRESENCE STRUCTURE>.
+
+=cut
 
 sub presences {
    my ($self, $jid, $pjid) = @_;
@@ -419,6 +479,19 @@ sub presences {
    }
 }
 
+=item my (@presences) = $pres->highest_prio_presence ($resjid)
+
+This method returns the presences of the resources with the highest priority
+for each contact that sent presence information to your resource with the JID
+C<$resjid>.
+
+=item my $pres = $pres->highest_prio_presence ($resjid, $bare_jid)
+
+This method returns the presence of the resource with the highest priority
+of the contact C<$bare_jid>. If none is present undef is returned.
+
+=cut
+
 sub highest_prio_presence {
    my ($self, $jid, $bjid) = @_;
 
@@ -437,7 +510,7 @@ sub highest_prio_presence {
       #d#      . join (",\n", map { "$_->{show} <<< $_->{priority} <<< $_->{jid}" } @p)
       #d#      . "\n-----------------\n";
 
-      return @p ? $p[0] : ();
+      return @p ? $p[0] : undef;
 
    } else {
       $jid = stringprep_jid $jid;
@@ -453,6 +526,8 @@ sub highest_prio_presence {
    }
 }
 
+# this method is currently only used by the MUC extension to
+# clear the presences for a room when it becomes unavailable.
 sub clear_contact_presences {
    my ($self, $jid, $bjid) = @_;
    delete $self->{p}->{stringprep_jid $jid}->{prep_bare_jid $bjid};
@@ -460,7 +535,7 @@ sub clear_contact_presences {
 
 =back
 
-=head1 PRESENCE METHODS
+=head1 SUBSCRIPTION METHODS
 
 =over 4
 
@@ -565,6 +640,29 @@ sub handle_subscription_request {
 
 =back
 
+=head1 PRESENCE STRUCTURE
+
+The presence structures used by this extension are described here.
+Here is a schematic example:
+
+   {
+      priority   => $resource_priority,
+      all_status => $all_lang_statuses,
+      status     => $status,
+      show       => $show,
+      jid        => $full_jid
+   }
+
+C<$show> can be one of:
+
+   unavailable, available, xa, dnd, away, chat
+
+C<$status> and C<$all_lang_statuses> contain the status information for the
+resource C<$full_jid>. C<$status> usually contains the status text in English
+or "the default language". C<$all_lang_statuses> is a hash reference that
+contains all the statuses. Please consult C<extract_lang_element> in the
+L<AnyEvent::XMPP::Util> module for more details.
+
 =head1 EVENTS
 
 These events are emitted (via the L<Object::Event> interface)
@@ -603,7 +701,7 @@ Robin Redeker, C<< <elmex at ta-sa.org> >>, JID: C<< <elmex at jabber.org> >>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Robin Redeker, all rights reserved.
+Copyright 2009, 2010 Robin Redeker, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

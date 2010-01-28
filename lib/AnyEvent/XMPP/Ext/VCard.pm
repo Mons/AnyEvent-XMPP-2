@@ -260,7 +260,7 @@ The vcard extension will emit these events:
 =item retrieve_vcard_error => $iq_error
 
 When a vCard retrieval was not successful, this event is emitted.
-This is neccessary as some retrievals may happen automatically.
+This is necessary as some retrievals may happen automatically.
 
 =item vcard => $jid, $vcard
 
@@ -275,7 +275,7 @@ Robin Redeker, C<< <elmex at ta-sa.org> >>, JID: C<< <elmex at jabber.org> >>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2007-2009 Robin Redeker, all rights reserved.
+Copyright 2007-2010 Robin Redeker, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

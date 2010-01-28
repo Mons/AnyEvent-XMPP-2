@@ -734,7 +734,7 @@ melo - design suggestions
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2007-2009 Robin Redeker, all rights reserved.
+Copyright 2007-2010 Robin Redeker, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

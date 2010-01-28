@@ -219,7 +219,7 @@ sub send_url {
 
 =head1 EVENTS
 
-These events can be registered to whith C<reg_cb>:
+These events can be registered to whit C<reg_cb>:
 
 =over 4
 
@@ -242,7 +242,7 @@ Robin Redeker, C<< <elmex at ta-sa.org> >>, JID: C<< <elmex at jabber.org> >>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Robin Redeker, all rights reserved.
+Copyright 2009, 2010 Robin Redeker, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

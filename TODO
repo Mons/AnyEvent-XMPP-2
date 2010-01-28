@@ -10,6 +10,7 @@
       - AE::XMPP::Ext::MUC
       - AE::XMPP::Ext::Presence
    - AE::XMPP::IM, AE::XMPP::Stream::Client
+   - don't forget new_message in ::Util!
 
 - write extensions to new API:
    - Ext::Pubsub
