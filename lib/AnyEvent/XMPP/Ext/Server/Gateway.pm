@@ -14,7 +14,6 @@ use Data::Dumper; $Data::Dumper::Useqq = 1;
 sub array2xml {
 	my $f= shift;
 	ref $f or return $f;
-	@$f or return [];
 	( map {+{
 		name => $f->[$_*2],
 		childs => [
@@ -74,11 +73,10 @@ sub iq_hash {
 	my $node = shift;
 	my ($ns,$type) = @_;
 	my %iq = map { $_ => $node->attr($_) } qw(id from to type);
-	#warn "iq type = $iq{type}";
 	my $q;
-	if (($q) = $node->find_all([$ns,$type])) {
-		my %q = ( iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) );
-		return \%q;
+	if (($q) = $node->find($ns,$type)) {
+		#warn "found node $ns:$type: $q";
+		return { iq => \%iq, ( map { $_->name => $_->text } $q->nodes ), attrs => $q->nattrs };
 	} else {
 		return { iq => \%iq };
 	}
@@ -208,7 +206,7 @@ sub init {
 			if ($iq{type} eq 'get' and ($q) = $node->find_all([qw/register query/])) {
 				my %q = ( iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) );
 				warn "register query $iq{id}: $iq{from} => $iq{to}";
-				$self->{extendable}->event( gateway_request => $self,\%q,$node )
+				$self->{extendable}->event( gateway_request => $self,iq_hash($node,qw(register query)),$node )
 					or warn("event <gateway_request> not handled"),return;
 				$ext->stop_event;return 1;
 			}
@@ -216,13 +214,13 @@ sub init {
 				my %q = ( iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) );
 				if (exists $q{remove}) {
 					#warn "unregister query $iq{id} set: $iq{from} => $iq{to} (+$q)";
-					$self->{extendable}->event( gateway_unregister => $self, \%q, $node )
+					$self->{extendable}->event( gateway_unregister => $self, iq_hash($node,qw(register query)), $node )
 						or warn("event <gateway_unregister> not handled"),return;
 					$ext->stop_event;
 					return 1;
 				} else {
 					#warn "register query $iq{id} set: $iq{from} => $iq{to} (+$q)";
-					$self->{extendable}->event( gateway_register => $self, \%q, $node )
+					$self->{extendable}->event( gateway_register => $self, iq_hash($node,qw(register query)), $node )
 						or warn("event <gateway_register> not handled"),return;
 					$ext->stop_event;
 					return 1;
