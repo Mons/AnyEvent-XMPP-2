@@ -76,7 +76,7 @@ sub iq_hash {
 	my $q;
 	if (($q) = $node->find($ns,$type)) {
 		#warn "found node $ns:$type: $q";
-		return { iq => \%iq, ( map { $_->name => $_->text } $q->nodes ), attrs => $q->nattrs };
+		return { iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) };
 	} else {
 		return { iq => \%iq };
 	}
