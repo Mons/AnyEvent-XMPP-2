@@ -25,6 +25,8 @@ X write Ext::MsgTracker
 - document new extensions
 - find solution for sorting out which presence belong to MUC
 
+- think about multiple join problem with m-link. maybe we can workaround it
+  or implement a good algorithm to prevent multiple joins. (join grace timeout?)
 - document new_* functions in Util
    - rewrite documentation about add() and simxml().
 - cleanup IM w.r.t. jid/account handling
