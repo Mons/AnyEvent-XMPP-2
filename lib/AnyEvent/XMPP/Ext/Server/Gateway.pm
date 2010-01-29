@@ -3,6 +3,7 @@ package AnyEvent::XMPP::Ext::Server::Gateway;
 use strict;
 use AnyEvent::XMPP::Namespaces qw/xmpp_ns/;
 use AnyEvent::XMPP::Node qw/simxml/;
+use AnyEvent::XMPP::Ext::Server::Util qw/arrxml/;
 use AnyEvent::XMPP::Util qw/new_presence bare_jid res_jid stringprep_jid node_jid/;
 
 use base qw/AnyEvent::XMPP::Ext/;
@@ -10,17 +11,6 @@ use base qw/AnyEvent::XMPP::Ext/;
 use AnyEvent::XMPP::Error::Presence;
 
 use Data::Dumper; $Data::Dumper::Useqq = 1;
-
-sub array2xml {
-	my $f= shift;
-	ref $f or return $f;
-	( map {+{
-		name => $f->[$_*2],
-		childs => [
-			array2xml( $f->[$_*2+1] )
-		],
-	}} 0..int($#$f/2) ),
-}
 
 sub required_extensions { 'AnyEvent::XMPP::Ext::Disco', 'AnyEvent::XMPP::Ext::Presence' }
 sub autoload_extensions { 'AnyEvent::XMPP::Ext::Disco', 'AnyEvent::XMPP::Ext::Presence' }
@@ -377,7 +367,7 @@ sub search_form {
 				{
 					name => 'query', dns => 'gateway',
 					childs => [
-						array2xml($f)
+						arrxml($f)
 					]
 				}
 			],
