@@ -74,11 +74,9 @@ sub iq_hash {
 	my $node = shift;
 	my ($ns,$type) = @_;
 	my %iq = map { $_ => $node->attr($_) } qw(id from to type);
-	#warn "iq type = $iq{type}";
 	my $q;
-	if (($q) = $node->find_all([$ns,$type])) {
-		my %q = ( iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) );
-		return \%q;
+	if (($q) = $node->find($ns,$type)) {
+		return { iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) };
 	} else {
 		return { iq => \%iq };
 	}
