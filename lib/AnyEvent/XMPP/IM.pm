@@ -48,6 +48,8 @@ to a server.
 
 =item AnyEvent::XMPP::Ext::Delay
 
+=item AnyEvent::XMPP::Ext::Ping
+
 =item AnyEvent::XMPP::Ext::LangExtract
 
 =item AnyEvent::XMPP::Ext::MsgTracker
@@ -102,6 +104,7 @@ sub new {
    $self->{lang}    = $self->add_ext ('LangExtract');
    $self->{track}   = $self->add_ext ('MsgTracker');
    $self->{muc}     = $self->add_ext ('MUC');
+   $self->{ping}    = $self->add_ext ('Ping');
 
    $self->init_exts;
 
