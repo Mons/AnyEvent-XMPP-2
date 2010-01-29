@@ -18,17 +18,15 @@ sub init {
 		ext_before_recv_iq => sub {
 			my ($ext, $node) = @_;
 			my %iq = map { $_ => $node->attr($_) } qw(id from to type);
-			warn "iq type = $iq{type}";
+			my $iqtype = $node->attr('type');
+			warn "iq type = $iqtype";
 			my $q;
-			if ($iq{type} eq 'get' and ($q) = $node->find_all([qw/vcard vCard/])) {
-				warn "vcard query $iq{id}: $iq{from} => $iq{to}";
+			if (($q) = $node->find_all([qw/vcard vCard/])) {
+				warn "vcard query $iqtype $iq{id}: $iq{from} => $iq{to}";
 				#my %q = ( iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) );
-				$self->{extendable}->event( vcard_request => $self,$iq{from},$iq{to},$q,$node )
-					or warn("event <vcard_request> not handled"),return;
+				$self->event( $iqtype => $q,$node, $node->attr('from'),$node->attr('to') )
+					or warn("event <vcard.$iqtype> not handled"),return;
 				$ext->stop_event;return 1;
-			}
-			else {
-				warn "ext_before_recv_iq";
 			}
 			return;
 		},

@@ -82,6 +82,10 @@ sub iq_hash {
 	}
 }
 
+sub disco { shift->{disco} }
+sub reply_with_disco_info { shift->disco->reply_with_disco_info(@_) }
+sub reply_with_disco_items { shift->disco->reply_with_disco_items(@_) }
+
 sub init {
 	my $self = shift;
 
@@ -101,20 +105,21 @@ sub init {
 		ext_before_recv_iq => sub {
 			my ($ext, $node) = @_;
 			if ($node->attr ('type') eq 'get') {
-				if ($node->find (disco_info => 'query')) {
+				my ($q);
+				if (($q) = $node->find (disco_info => 'query')) {
 					my $from = bare_jid($node->attr('from'));
-					if ($self->{extendable}->handles('discovery_info')) {
-						$self->{extendable}->event('discovery_info' => $self->{disco},iq_hash($node, disco_info => 'query'), $node );
+					if ($self->handles('discovery_info')) {
+						$self->event('discovery_info' => $q, $node );
 						$ext->stop_event;return 1;
 					} else {
 						#return $self->iq_fail($node,403);
 						$self->{disco}->reply_with_disco_info ($node);
 					}
 				}
-				elsif ($node->find (disco_items => 'query')) {
+				elsif (($q) = $node->find (disco_items => 'query')) {
 					warn "Discovery items";
-					if ($self->{extendable}->handles('discovery_items')) {
-						$self->{extendable}->event('discovery_items' => $self->{disco},iq_hash($node, disco_items => 'query'), $node );
+					if ($self->handles('discovery_items')) {
+						$self->event('discovery_items' => $q, $node );
 						$ext->stop_event;return 1;
 					} else {
 						$self->{disco}->reply_with_disco_items ($node);
@@ -148,7 +153,7 @@ sub init {
 			my $myjid = $self->{extendable}->jid;
 			if ($to eq $myjid or $to =~ /^(.+)\@\Q$myjid\E$/) {
 				my ($prefix,$user);
-				my @args = ($self,$from);
+				my @args = ($node,$from);
 				if ($user = $1) {
 					#warn "Received presence to my user <$user>\n";
 					$prefix = 'contact';
@@ -167,29 +172,29 @@ sub init {
 					}
 					
 				}
-					if ($self->{extendable}->handles("${prefix}_${type}")) {
-						$self->{extendable}->event( "${prefix}_${type}" => @args );
+					if ($self->handles("${prefix}_${type}")) {
+						$self->event( "${prefix}_${type}" => @args );
 							#or warn("event <${prefix}_${type}> not handled"),return;
 					}
-					elsif ($self->{extendable}->handles("any_${prefix}_presence")) {
-						splice @args,1,0,$type;
-						$self->{extendable}->event( "any_${prefix}_presence" => @args );
+					elsif ($self->handles("any_${prefix}_presence")) {
+						unshift @args,$type;
+						$self->event( "any_${prefix}_presence" => @args );
 						#	and $ext->stop_event,return 1;
 					}
-					elsif ($self->{extendable}->handles("${prefix}_presence")) {
-						$self->{extendable}->event( "${prefix}_presence" => @args );
+					elsif ($self->handles("${prefix}_presence")) {
+						$self->event( "${prefix}_presence" => @args );
 						#	and $ext->stop_event,return 1;
 					}
-					elsif ($self->{extendable}->handles('any_presence')) {
-						splice @args,1,0,$type;
-						$self->{extendable}->event( "any_presence" => @args );
+					elsif ($self->handles('any_presence')) {
+						unshift @args, $type;
+						$self->event( "any_presence" => @args );
 						#	and $ext->stop_event,return 1;
 					}
 					elsif ($type eq 'subscribe' and !$user) {
 						$self->subscribed($to, $from);
 					}
 					else {
-						warn("event <${prefix}_${type}> not handled"),return;
+						warn("event <gw.${prefix}_${type}> not handled"),return;
 					}
 			}
 			else {
@@ -201,59 +206,53 @@ sub init {
 		ext_before_recv_iq => sub {
 			my ($ext, $node) = @_;
 			my %iq = map { $_ => $node->attr($_) } qw(id from to type);
+			my $iqtype = $node->attr('type');
 			#warn "iq type = $iq{type}";
 			my $q;
-			if ($iq{type} eq 'get' and ($q) = $node->find_all([qw/register query/])) {
-				my %q = ( iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) );
+			if ($iqtype eq 'get' and ($q) = $node->find_all([qw/register query/])) {
 				warn "register query $iq{id}: $iq{from} => $iq{to}";
-				$self->{extendable}->event( gateway_request => $self,iq_hash($node,qw(register query)),$node )
-					or warn("event <gateway_request> not handled"),return;
+				$self->event( request => $q, $node )
+					or warn("event <gateway.request> not handled"),return;
 				$ext->stop_event;return 1;
 			}
-			elsif ($iq{type} eq 'set' and ($q) = $node->find_all([qw/register query/])) {
-				my %q = ( iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) );
-				if (exists $q{remove}) {
+			elsif ($iqtype eq 'set' and ($q) = $node->find_all([qw/register query/])) {
+				if ($q->find(qw(register remove))) {
 					#warn "unregister query $iq{id} set: $iq{from} => $iq{to} (+$q)";
-					$self->{extendable}->event( gateway_unregister => $self, iq_hash($node,qw(register query)), $node )
-						or warn("event <gateway_unregister> not handled"),return;
-					$ext->stop_event;
-					return 1;
+					$self->event( unregister => $q, $node )
+						or warn("event <gateway.unregister> not handled"),return;
 				} else {
 					#warn "register query $iq{id} set: $iq{from} => $iq{to} (+$q)";
-					$self->{extendable}->event( gateway_register => $self, iq_hash($node,qw(register query)), $node )
-						or warn("event <gateway_register> not handled"),return;
-					$ext->stop_event;
-					return 1;
+					my %fields = ( map { $_->name => $_->text } $q->nodes );
+					$self->event( register => $q, $node, \%fields )
+						or warn("event <gateway.register> not handled"),return;
 				}
+				$ext->stop_event;
+				return 1;
 			}
-			if ($iq{type} eq 'get' and ($q) = $node->find_all([qw/gateway query/])) {
+			if ($iqtype eq 'get' and ($q) = $node->find_all([qw/gateway query/])) {
 				#warn "gateway query $iq{id}: $iq{from} => $iq{to}";
-				my %q = ( iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) );
-				$self->{extendable}->event( gateway_search => $self,\%q,$node )
-					or warn("event <gateway_search> not handled"),return;
+				$self->event( search => $q, $node )
+					or warn("event <gateway.search> not handled"),return;
 				$ext->stop_event;return 1;
 			}
-			if ($iq{type} eq 'set' and ($q) = $node->find_all([qw/gateway query/])) {
-				my %q = ( iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) );
-				warn "gateway query $iq{id}: $iq{from} => $iq{to} $q{prompt}";
-				$self->{extendable}->event( gateway_translate => $self,\%q,$node )
-					or warn("event <gateway_translate> not handled"),return;
+			if ($iqtype eq 'set' and ($q) = $node->find_all([qw/gateway query/])) {
+				my %fields = ( map { $_->name => $_->text } $q->nodes );
+				warn "gateway query $iq{id}: $iq{from} => $iq{to} $fields{prompt}";
+				$self->event( translate => $q, $node, \%fields )
+					or warn("event <gateway.translate> not handled"),return;
 				$ext->stop_event;return 1;
 			}
-			if ($iq{type} eq 'set' and ($q) = $node->find_all([qw/roster query/])) {
-				my %q = ( iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) );
+			if ($iqtype eq 'set' and ($q) = $node->find_all([qw/roster query/])) {
 				warn "gateway query $iq{id}: roster update";
+				my %change;
 				for ($q->nodes) {
-					push @{ $q{$_->attr('subscription')} ||= [] }, { jid => $_->attr('jid') };
+					push @{ $change{ $_->attr('subscription')} ||= [] }, { jid => $_->attr('jid') };
 				}
-				$self->{extendable}->event( gateway_roster => $self,\%q,$node )
-					or warn("event <gateway_roster> not handled"),return;
+				$self->event( roster => $q,$node,\%change )
+					or warn("event <gateway.roster> not handled"),return;
 				$ext->stop_event;return 1;
 			}
-			else {
-				warn "iq not handled by gateway: ".Dumper(\%iq);
-			}
-			return 0
+			return;
 		},
 	);
 	return;
