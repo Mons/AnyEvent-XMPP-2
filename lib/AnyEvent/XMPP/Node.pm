@@ -150,8 +150,9 @@ sub simxml {
       $ns    = xmpp_ns_maybe ($ns);
 
       my $nnode =
-         AnyEvent::XMPP::Node->new ($ns, $node->{name}, undef, $node->{attrs} || []);
-      
+         AnyEvent::XMPP::Node->new (
+            $ns, $node->{name}, undef, $node->{attrs} || []);
+
       my $fb_ns = $desc{fb_ns};
 
       if (defined ($node->{dns}) && xmpp_ns_maybe ($node->{dns}) eq $ns) {
@@ -579,7 +580,7 @@ sub as_string {
    my $stream_ns = xmpp_ns_maybe ($subdecls->{'STREAM_NS'});
    $subdecls = { %{$subdecls || {}} };
    my @attrs;
-   
+
    #d# warn "MAKE $name ($ns)[$stream_ns] " . join (', ', map { "$_:$subdecls->{$_}" } keys %$subdecls) . "\n";
 
    # add the available namespace prefixes and force declaration if neccessary
@@ -645,7 +646,7 @@ sub as_string {
          if (exists $subdecls->{$ans}) {
             $pref = $subdecls->{$ans};
 
-         } else { 
+         } else {
             $pref = $subdecls->{$ans} = 'ns' . ++$idcnt;
             unshift @attrs, [$pref, $ans, 'xmlns']
          }
@@ -694,7 +695,7 @@ sub as_string {
       } @{$self->[NODES]};
 
    if ($indent) {
-      return $start 
+      return $start
          . ($child_data ne ''
               ? ">\n" . (join "\n", map { "  " . $_ } split /\n/, $child_data)
                  . "\n</$elem_name>"

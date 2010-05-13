@@ -14,6 +14,34 @@ AnyEvent::XMPP::IM - An XMPP instant messaging client
 
 =head1 SYNOPSIS
 
+   my $im = AnyEvent::XMPP::IM->new;
+
+   $im->reg_cb (
+      connected => sub {
+         my ($im, $jid, $ph, $pp) = @_;
+         printf "Connected to %s at %s:%s\n",
+                $jid, $ph, $pp;
+      },
+      error => sub {
+         my ($im, $jid, $error) = @_;
+         printf "Error on connection with %s: %s\n",
+                $jid, $error->string;
+         $im->stop_event; # !
+      },
+      disconnected => sub {
+         my ($im, $jid, $ph, $pp, $reason, $recon) = @_;
+         printf "Disconnected %s from %s:%s: %s, reconnect in %d seconds\n",
+                $jid, $ph, $pp, $reason, $recon;
+      },
+      recv_message => sub {
+         my ($im, $node) = @_;
+         printf "Message from %s:\n%s\n",
+                $node->attr ('from'), $node->meta->{body};
+      }
+   );
+
+   $im->add_account ("your@jid.at", "secret123");
+
 =head2 DESCRIPTION
 
 This class acts as highlevel XMPP client. It derives connection management from
