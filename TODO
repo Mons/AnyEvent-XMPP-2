@@ -1,14 +1,14 @@
-'x' means: is done!
+'X' means: is done!
 
 - make ssl verify switchable, remove ability to give context to starttls.
-- make AnyEvent::XMPP::IM the promised short-cut solution.
+X make AnyEvent::XMPP::IM the promised short-cut solution.
 
 - update docs:
    - AnyEvent::XMPP         - rewrite after other docs are done (mostly done)
-   - AnyEvent::XMPP::Ext    - review after rewrote other extensions. (mostly done)
-   - AnyEvent::XMPP::Ext::* - skim over them after finished other docs (still some undocumented ones)
-      - AE::XMPP::Ext::MUC
-      - AE::XMPP::Ext::Presence
+   M AnyEvent::XMPP::Ext    - review after rewrote other extensions. (mostly done)
+   M AnyEvent::XMPP::Ext::* - skim over them after finished other docs (still some undocumented ones)
+      M AE::XMPP::Ext::MUC
+      M AE::XMPP::Ext::Presence
    X AE::XMPP::IM, AE::XMPP::Stream::Client
 
 - write tests for Ext::MUC
@@ -46,13 +46,13 @@
      (eg. by supporting a method sasl_retry() which takes
       the changed credentials)
    X IDNA domain name stuff
-   x SRV record lookup
+   X SRV record lookup
       - weight handling!
 - AnyEvent::XMPP::IM missing functionality to be RFC 3921 conform:
    - 7.2.  Business Rules
 - Implement XEP-0115: Entity Capabilities
 - Implement XEP-0190: Best Practice for Closing Idle Streams
-x Implement XEP-0030: Service Discovery
+X Implement XEP-0030: Service Discovery
    - see also: XEP-0128: Service Discovery Extensions
    - missing feature: building up a item tree for discovery
 - see also: grep 'XXX\|FIXME\|TODO' * -r

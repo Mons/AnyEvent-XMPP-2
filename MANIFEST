@@ -14,10 +14,12 @@ t/xml_filter_chars.t
 t/node.t
 t/pod.t
 t/tokenizer.t
+t/strprep.t
 t/z_01_stream.t
 t/z_02_component.t
 t/z_03_register.t
 t/z_04_cm.t
+t/z_04_cm2.t
 t/z_04_im.t
 t/z_04_iq.t
 t/z_05_component_ext.t
@@ -33,7 +35,11 @@ t/z_10_ext_disco.t
 t/z_11_ext_capab.t
 t/z_13_ext_lang.t
 t/z_14_ext_delay.t
+t/z_15_ext_oob.t
+t/z_15_ext_vcard.t
+t/z_16_whitespace_ping.t
 t/z_99_unregister.t
+samples/simple_client
 lib/AnyEvent/XMPP/Authenticator.pm
 lib/AnyEvent/XMPP/Delivery.pm
 lib/AnyEvent/XMPP/Ext/Delay.pm
