@@ -10,12 +10,240 @@ use base qw/AnyEvent::XMPP::Ext/;
 
 use AnyEvent::XMPP::Error::Presence;
 
-use Data::Dumper; $Data::Dumper::Useqq = 1;
+=head1 NAME
 
-sub required_extensions { 'AnyEvent::XMPP::Ext::Disco', 'AnyEvent::XMPP::Ext::Presence' }
-sub autoload_extensions { 'AnyEvent::XMPP::Ext::Disco', 'AnyEvent::XMPP::Ext::Presence' }
+AnyEvent::XMPP::Ext::Server::Gateway - XEP-0100: Gateway Interaction
+
+=head1 SYNOPSIS
+
+
+   my $client = AnyEvent::XMPP::Stream::Component->new(
+      domain => $domain,
+      secret => $secret,
+      name   => $title,
+   );
+   my $gw = $client->add_ext('Server::Gateway');
+   
+   $gw->reg_cb(
+      request => sub { # Register query request (iq type get, query jabber:iq:register)
+         my ($gw,$query,$iq) = @_;
+         return $gw->iq_fail($iq,403) unless $registration_allowed;
+         if ($not_reg{ $iq->attr('from') }) {
+            $gw->register_form($iq, [
+               instructions => 'Enter your login and password',
+               username     => [],
+               password     => [],
+            ]);
+         } else {
+            $gw->registered($iq, [
+               username => 'known-username',
+               password => 'stored-password',
+            ]);
+         }
+      },
+      register => sub { # Register query request (iq type set, query jabber:iq:register)
+         my ($gw,$query,$iq,$fields) = @_;
+         return $gw->iq_fail($iq,403) unless $registration_allowed;
+         if ($fields->{username} and $fields->{password}) {
+            if (correct($fields)) {
+               $gw->register_ok($iq);
+            } else {
+               $gw->iq_fail($iq, 406);
+            }
+         } else {
+            $gw->iq_fail($iq, 406);
+         }
+      },
+      unregister => sub { # Unregister query request (iq type set, query jabber:iq:register, remove)
+         my ($gw,$query,$iq) = @_;
+         if (registered{$iq->attr('from')}) {
+            unregister($iq->attr('from'));
+            $gw->unregister_ok($iq);
+            if (@roster) {
+               $gw->roster_del($iq->attr('from'), @roster);
+            }
+         } else {
+            $gw->iq_fail($iq, 406);
+         }
+      },
+      search => sub { # Search prompt from client (iq type get, query jabber:iq:gateway)
+         my ($gw,$query,$iq) = @_;
+         $gw->search_form($iq,
+            desc => 'Enter user email in domain @somewhere.com',
+            prompt => "Email",
+         );
+      },
+      translate => sub { # Translate legacy username to gateway jid (iq type set, query jabber:iq:gateway)
+         my ($gw,$query,$iq,$fields) = @_;
+         my $legacy = $fields->{prompt};
+         if (ok($legacy)) {
+            $gw->translated( $iq, $legacy .'@'. $gw->jid ); # return translated legacy login to jid
+         } else {
+            $gw->iq_fail($iq);
+         }
+      },
+      roster => sub { # Roster change request (iq type set, query jabber:iq:roster)
+         my ($gw,$query,$iq,$change) = @_;
+         # TODO
+         return $gw->iq_fail($iq, 406);
+      },
+   );
+   
+   # Also, if need in vcard support feel free to add
+   $client->add_ext('Server::VCard');
+   
+   Additionaly, service discovery requests may be intercepted
+   
+   $gw->reg_cb(
+      discovery_items => sub {
+         my ($gw,$query,$node) = @_;
+         return $gw->iq_fail($node,403) unless $discovery_allowed;
+         $gw->reply_with_disco_items($node);
+      },
+      discovery_info => sub {
+         my ($gw,$query,$node) = @_;
+         return $gw->iq_fail($node,403) unless $discovery_allowed;
+         $gw->reply_with_disco_info($node);
+      },
+   );
+
+
+=head1 DESCRIPTION
+
+This extension implements xep-0100 Gateway interaction
+
+=head1 DEPENDENCIES
+
+This extension autoloads and requires the L<AnyEvent::XMPP::Ext::Disco> extension.
+
+=head1 EVENTS
+
+=over 4
+
+=item request ($query_node, $iq_node) # get register query
+
+=item register ($query_node, $iq_node, \%fields )
+
+=item unregister ($query_node, $iq_node)
+
+=item search ($query_node, $iq_node)  ->  $gw->search_form($iq,{desc,prompt})
+
+=item translate ($query_node, $iq_node, \%fields)  ->  $gw->translated( $iq, $legacy );
+
+=item roster($query_node, $iq_node, { remove => [{jid}, ...],  })
+
+
+=item discovery_info ($query_node, $iq_node)
+
+=item discovery_items ($query_node, $iq_node)
+
+=back
+
+=head1 PRESENCE EVENTS
+
+This component have own presence handling. Presences separated in 2 groups:
+presences addressed to component itself (prefix=C<gateway>)
+and presences to contacts in component domain (prefix=C<contact>)
+
+Presence type is defined as C<type> attribute of presence stansa and defaults to C<presence>,
+if attribute is omitted
+
+C<Gateway> will try to find presence event handler by next chain:
+
+   ${prefix}_${type}
+   any_${prefix}_presence
+   ${prefix}_presence
+   any_presence
+
+
+=over 4
+
+=item gateway_${type} ($node,$from)
+
+=item contact_${type} ($node,$from,$to)
+
+=item any_* ( $node, $type, $from, $to )
+
+=back
+
+So, you may as write separate event handlers for every single type of presence, as use only one handler for all presences
+
+If presence was not handled and it was subscribe, adressed to gateway itself (C<gateway_subscribe>),
+gateway will automatically respond with C<subscribed>
+
+Simple example
+
+   $gw->get_cb(
+      any_presence => sub {
+         my ($gw,$node,$type,$from,$to) = @_;
+         # Generic handler for all presences
+      },
+   );
+
+Separate gateway and contact presences
+
+   $gw->get_cb(
+      any_gateway_presence => sub {
+         my ($gw,$node,$type,$from) = @_;
+         # Generic handler for all gateway presences
+      },
+      any_contact_presence => sub {
+         my ($gw,$node,$type,$from,$to) = @_;
+         # Generic handler for all contact presences
+      },
+   );
+
+Complex handlers with any_gateway_* fallback
+
+   $gw->get_cb(
+      gateway_subscribed => sub {
+         my ($gw,$node,$from) = @_;
+      },
+      gateway_unsubscribe => sub {
+         my ($gw,$node,$from) = @_;
+         $gw->unsubscribed($gw->jid => $from);
+      },
+      gateway_unsubscribed => sub {
+         my ($gw,$node,$from) = @_;
+      },
+      gateway_presence => sub {
+         my ($gw,$node,$from,$new) = @_;
+         if ($new->{show} eq 'unavailable') {
+            # Log out from gateway
+            $gw->unavailable( $gw->jid => $from );
+         } else {
+            # Log in to gateway
+            return $gw->available( $self->jid => $from );
+         }
+      },
+      gateway_probe => sub {
+         my ($gw,$node,$from) = @_;
+         # may reply with presences for all contact list
+      },
+      any_gateway_presence => sub {
+         my ($node,$type,$from) = @_;
+         warn "Unhandled presence of type $type from $from";
+      },
+      any_contact_presence => sub {
+         my ($node,$type,$from,$to) = @_;
+         # Generic handler for all contact presences
+         # Retransmit any contact presence to legacy service
+      },
+   );
+
+=head1 METHODS
+
+=over 4
+
+=cut
+
+
+
+sub required_extensions { 'AnyEvent::XMPP::Ext::Disco' }
+sub autoload_extensions { 'AnyEvent::XMPP::Ext::Disco' }
 sub disco_feature { ( xmpp_ns('gateway'), xmpp_ns ('register') ) }
 
+=for remove
 sub set_instructions {
 	my $self = shift;
 	$self->{instructions} = shift;
@@ -33,6 +261,8 @@ sub set_fields {
 sub fields {
 	shift->{fields}
 }
+
+=cut
 
 sub nextid {
 	my $self = shift;
@@ -76,6 +306,14 @@ sub disco { shift->{disco} }
 sub reply_with_disco_info { shift->disco->reply_with_disco_info(@_) }
 sub reply_with_disco_items { shift->disco->reply_with_disco_items(@_) }
 
+=item jid
+
+return component's jid. just a proxy to extendable->jid
+
+=cut
+
+sub jid { shift->{extendable}->jid }
+
 sub init {
 	my $self = shift;
 
@@ -83,10 +321,6 @@ sub init {
 	$self->{id}     = 'aaaaa';
 	$self->{fields} ||= [qw(username password)];
 	$self->{name}   ||= $self->{extendable}{name} || 'AnyEvent::XMPP::Gateway';
-	{
-		local $self->{extendable} = "$self->{extendable}";
-		#warn Dumper $self;
-	}
 	$self->{disco}  = $self->{extendable}->get_ext('Disco');
 	$self->{disco}->unset_identity('client');
 
@@ -290,6 +524,17 @@ sub unavailable {
 	$self->{extendable}->send( new_presence( unavailable => undef, undef , undef, src => $from, from => $from, to => $to) );
 }
 
+=item registered($iq, $form)
+
+send a registered response to register query. C<$iq> is request iq node
+
+   $gw->registered($iq, [
+      username => 'known-username',
+      password => 'stored-password',
+   ]);
+
+=cut
+
 sub registered {
 	my $self = shift;
 	my $node = shift;
@@ -323,10 +568,24 @@ sub registered {
 	return 1;
 	
 }
+
+=item register_form($iq, $form)
+
+send a register form response to register query. C<$iq> is request iq node
+
+   $gw->register_form($iq, [
+      instructions => 'Please, fill the form below',
+      username     => [],
+      password     => [],
+   ]);
+
+=cut
+
 sub register_form {
 	my $self = shift;
 	my $node = shift;
-	my $f = @_ ? [@_] : $self->{fields};
+	my $f = shift;
+	#my $f = @_ ? [@_] : $self->{fields};
 	$self->{extendable}->send(simxml(
 		node => {
 			name => 'iq', attrs => [
@@ -339,10 +598,11 @@ sub register_form {
 				{
 					name => 'query', dns => 'register',
 					childs => [
-						{ name => 'instructions', childs => [
-							$self->{instructions} || 'Please, fill the form below',
-						] },
-						(map {+{ name => $_ }} @$f),
+						arrxml($f),
+						#{ name => 'instructions', childs => [
+						#	$self->{instructions} || 'Please, fill the form below',
+						#] },
+						#(map {+{ name => $_ }} @$f),
 					]
 				}
 			],
@@ -351,10 +611,22 @@ sub register_form {
 	return 1;
 }
 
+=item search_form($iq, $form)
+
+send a search form response to gateway search query prompt. C<$iq> is request iq node
+
+   $gw->search_form($iq, [
+      desc => 'Enter user email in domain @somewhere.com',
+      prompt => "Email",
+   ]);
+
+=cut
+
 sub search_form {
 	my $self = shift;
 	my $node = shift;
-	my $f = @_ ? [@_] : $self->{search_form};
+	#my $f = @_ ? [@_] : $self->{search_form};
+	my $f = @_ > 1 ? [@_] : shift;
 	$self->{extendable}->send(simxml(
 		node => {
 			name => 'iq', attrs => [
@@ -375,6 +647,14 @@ sub search_form {
 	));
 	return 1;
 }
+
+=item translated($iq, $jid)
+
+send a reply to gateway translate query. C<$iq> is request iq node
+
+   $gw->translated($iq, $legacy.'@'.$gw->jid);
+
+=cut
 
 sub translated {
 	my $self = shift;
@@ -403,6 +683,14 @@ sub translated {
 	return 1;
 }
 
+=item register_ok($iq)
+
+send a reply to register query. C<$iq> is request iq node. Also sends subscribe presence, as required by xep
+
+   $gw->register_ok($iq);
+
+=cut
+
 sub register_ok {
 	my ($self,$node) = @_;
 	my %iq = map { $_ => $node->attr($_) } qw(id from to type);
@@ -424,6 +712,14 @@ sub register_ok {
 		subscribe => undef, "Hi! Authorize me for correct work", undef, src => bare_jid($iq{to}), to => bare_jid($iq{from})));
 
 }
+
+=item unregister_ok($iq)
+
+send a reply to unregister query. C<$iq> is request iq node. Also sends unsubscribe and unavailable presences
+
+   $gw->unregister_ok($iq);
+
+=cut
 
 sub unregister_ok {
 	my ($self,$node) = @_;
@@ -466,6 +762,17 @@ our %ERR = (
 	504 => [ 'remote-server-timeout',   'wait',   'Remote Server Timeout' ],
 	510 => [ 'service-unavailable',     'cancel', 'Disconnected' ],
 );
+
+=item iq_fail($iq, [ $code ])
+
+send an error reply to any incoming iq. By default send 406, not-acceptable.
+
+C<$code> referenced from L<http://xmpp.org/extensions/xep-0086.html>
+
+   $gw->unregister_ok($iq);
+
+=cut
+
 
 sub iq_fail {
 	my ($self,$node,$code) = @_;
@@ -582,5 +889,9 @@ sub roster_del {
 	$self->unavailable( bare_jid($_->{jid}),bare_jid($user) ) for @_;
 	#$self->contact_offline($user,$_) for @_;
 }
+
+=back
+
+=cut
 
 1;
