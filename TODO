@@ -1,32 +1,25 @@
-'x' means: is done!
+'X' means: is done!
 
 - make ssl verify switchable, remove ability to give context to starttls.
-- make AnyEvent::XMPP::IM the promised short-cut solution.
+X make AnyEvent::XMPP::IM the promised short-cut solution.
 
 - update docs:
    - AnyEvent::XMPP         - rewrite after other docs are done (mostly done)
-   - AnyEvent::XMPP::Ext    - review after rewrote other extensions. (mostly done)
-   - AnyEvent::XMPP::Ext::* - skim over them after finished other docs (still some undocumented ones)
-      - AE::XMPP::Ext::MUC
-      - AE::XMPP::Ext::Presence
-   - AE::XMPP::IM, AE::XMPP::Stream::Client
-   - don't forget new_message in ::Util!
-
-- write extensions to new API:
-   - Ext::Pubsub
-   - Ext::VCardAvatar
+   M AnyEvent::XMPP::Ext    - review after rewrote other extensions. (mostly done)
+   M AnyEvent::XMPP::Ext::* - skim over them after finished other docs (still some undocumented ones)
+      M AE::XMPP::Ext::MUC
+      M AE::XMPP::Ext::Presence
+   X AE::XMPP::IM, AE::XMPP::Stream::Client
 
 - write tests for Ext::MUC
   - muc should timeout the parts
     and remove internal things. or BS should do that...
   - check that the part timeout works!
-X write Ext::MsgTracker
-  - write tests for it!
 - document new extensions
 - find solution for sorting out which presence belong to MUC
 
-- document new_* functions in Util
-   - rewrite documentation about add() and simxml().
+- think about multiple join problem with m-link. maybe we can workaround it
+  or implement a good algorithm to prevent multiple joins. (join grace timeout?)
 - cleanup IM w.r.t. jid/account handling
 - fix MUC documentation!
    - make MUC auto-ping itself, to detect erros when the other end
@@ -37,22 +30,14 @@ X write Ext::MsgTracker
   method (at least internally), to repeat the last sent presence (be careful
   not to repeat directed presences!).
    - think more about $dont_retrieve_vcard.
-- make exponential falloff in Client.pm when an account couldn't be connected.
 - remove XML::Twig dependency from debug => ...
-- map the domain part correctly w.r.t. IDNA
 - rename 'domain' parameter to 'host',
   and rename the internal host/port to peer_host and
   peer_port.
 - add nick_change to documentation
 - implement more of XEP-0045: Multi-User Chat
-- write a tutorial for simxml
-- make more tests
-   - data forms
-   - jabber component
 - fix the inaviodable memoryleaks with the callbacks
   the circular object structs.
-- put some serious stuff in the synopsises
- test the xml parse error object somehow!
 - add context field to IQ error for all the places origin from IQ errors
   (bind_error, session_error, ...)
 - AnyEvent::XMPP missing functionality to be RFC 3920 conform:
@@ -60,14 +45,14 @@ X write Ext::MsgTracker
      support retries as specified in RFC 3920.
      (eg. by supporting a method sasl_retry() which takes
       the changed credentials)
-   - IDNA domain name stuff
-   x SRV record lookup
+   X IDNA domain name stuff
+   X SRV record lookup
       - weight handling!
 - AnyEvent::XMPP::IM missing functionality to be RFC 3921 conform:
    - 7.2.  Business Rules
 - Implement XEP-0115: Entity Capabilities
 - Implement XEP-0190: Best Practice for Closing Idle Streams
-x Implement XEP-0030: Service Discovery
+X Implement XEP-0030: Service Discovery
    - see also: XEP-0128: Service Discovery Extensions
    - missing feature: building up a item tree for discovery
 - see also: grep 'XXX\|FIXME\|TODO' * -r
@@ -80,3 +65,26 @@ long term?
 X Implement XEP-0082: XMPP Date and Time Profiles
    W provide maybe _to functions for the old format,
      it's still in use out there
+
+
+X put some serious stuff in the synopsises
+ test the xml parse error object somehow!
+X write a tutorial for simxml
+X make more tests
+   - data forms
+   X jabber component
+X map the domain part correctly w.r.t. IDNA
+X write extensions to new API: (will not do!)
+   - Ext::Pubsub
+   - Ext::VCardAvatar
+X write Ext::MsgTracker
+  - write tests for it!
+X document new_* functions in Util
+   X rewrite documentation about add() and simxml().
+
+
+X make exponential falloff in Client.pm when an account couldn't be connected.
+
+
+
+
