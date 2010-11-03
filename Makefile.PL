@@ -7,16 +7,32 @@ Wellcome to AnyEvent::XMPP (version 1.x)
 =========================================
 
  ************************** CAUTION **************************
+ *                                                           *
+ *************************************************************
  * This is 'AnyEvent::XMPP version 1.x' and the API is       *
  * completely incompatible to the previous 0.x versions.     *
+ *************************************************************
  *                                                           *
  * The old versions are still available on CPAN:             *
  * http://search.cpan.org/CPAN/authors/id/E/EL/ELMEX/        *
+ *                                                           *
+ * In the CPAN shell you can force installing the old 0.x    *
+ * version by issuing this command:                          *
+ *                                                           *
+ * cpan> install E/EL/ELMEX/AnyEvent-XMPP-0.51.tar.gz        *
+ *                                                           *
+ * Or if tests fail:                                         *
+ *                                                           *
+ * cpan> force install E/EL/ELMEX/AnyEvent-XMPP-0.51.tar.gz  *
+ *                                                           *
+ * However, I don't give any support for 0.x versions of     *
+ * this module anymore. I might answer questions, but if you *
+ * hit bugs in the 0.x versions you are on your own.         *
+ *                                                           *
  *************************************************************
 
-
 EOF
-sleep 3;
+sleep 5;
 
 WriteMakefile(
     NAME                => 'AnyEvent::XMPP',
@@ -26,7 +42,7 @@ WriteMakefile(
     ABSTRACT_FROM       => 'lib/AnyEvent/XMPP.pm',
     PL_FILES            => {},
     PREREQ_PM => {
-        'AnyEvent'           => 5.23,
+        'AnyEvent'           => 5.26,
         'AnyEvent::Socket'   => 0,
         'AnyEvent::Handle'   => 0,
         'Scalar::Util'       => 0,

@@ -498,8 +498,8 @@ sub is_ready {
 
 =item $con->send ($node)
 
-This method is used to send an XMPP stanza directly over
-the connection. The type of C<$node> is L<AnyEvent::XMPP::Node>.
+This method is used to send an XMPP stanza directly via the connection. The
+type of C<$node> is L<AnyEvent::XMPP::Node>.
 
 =cut
 
@@ -551,7 +551,7 @@ L<AnyEvent::XMPP:Stream> and L<Object::Event> for details about registering
 event callbacks.
 
 NODE: Every callback gets as it's first argument the L<AnyEvent::XMPP::Stream>
-object. 
+object.
 
 These events are additional or changed events are available:
 
@@ -687,8 +687,9 @@ sub send : event_cb {
 
 =item recv_features => $node
 
-Emitted whenever the stream features have been received.
-This event is used to drive the handshake process.
+Emitted whenever the stream features have been received.  This event is used to
+drive the handshake process. C<$node> is the XML node (as
+L<AnyEvent::XMPP::Node> that contains the features the server offers.
 
 =cut
 

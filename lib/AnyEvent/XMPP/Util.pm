@@ -490,7 +490,8 @@ sub xml_escape {
 
 =item $text = xml_unescape ($xmltext)
 
-Replaces predefined XML entities from C<$xmltext>. The inverse function of C<xml_escape>.
+Replaces predefined XML entities from C<$xmltext>.
+The inverse function of C<xml_escape>.
 
 =cut
 
@@ -545,9 +546,9 @@ that the C<add> method of L<AnyEvent::XMPP::Node> accepts.
 
 =item sent_cb => $callback
 
-The code reference in C<$callback> will be invoked when the serialized bytes
-of the generated L<AnyEvent::XMPP::Node> is completely written out to the operating
-system.
+The code reference in C<$callback> will be invoked when the serialized bytes of
+the generated L<AnyEvent::XMPP::Node> is completely written out to the
+operating system.
 
 =item src => $src_jid
 
@@ -614,6 +615,72 @@ sub new_iq {
 
 =item $node = new_message ($type, $body, %args)
 
+This function generates an XMPP message stanza of type C<$type> and returns it
+as L<AnyEvent::XMPP::Node> structure.
+
+C<$type> can be one of these values:
+
+   undef           (defaults to 'chat')
+   'normal'
+   'headline'
+   'groupchat'
+   'error'
+
+C<$body> contains the human readable presence status. It can either be a
+simple string or a hash reference. If it is a hash reference the keys define
+the language tag and the values the human readable text for the status in that
+language.
+
+Example:
+
+   # Making a message without any languages attached to the body.
+   new_message (
+      chat => "Hi there!,
+      to   => "elmex@jabber.org",
+      src  => "me@mydomain.net/myconnectedresource",
+   );
+
+   # Making a message with languages attached:
+   new_message (
+      chat => {
+         en => "Hello there!",
+         de => "Hallo da!",
+      },
+      to  => "elmex@jabber.org",
+      src => "me@mydomain.net/myconnectedresource",
+   );
+
+C<%args> can contain these keys:
+
+=over 4
+
+=item subject => $subject
+
+This will set the subject of the message. C<$subject> has the same
+format as the C<$body> (see above).
+
+=item thread => $thread
+
+Sets the thread the message belongs to. C<$thread> can either be
+the thread string itself. Or an array reference containing the
+parent thread of the message as first element and the
+thread id of the message itself as second element.
+
+=item create => $creation
+
+=item sent_cb => $coderef
+
+=item src => $src_jid
+
+=item dest => $dest_jid
+
+See C<new_iq> documentation about these keys.
+
+=back
+
+All other keys found in C<%args> are appended as they are
+as XML element attributes.
+
 # TODO: document this!
 
 =cut
@@ -661,7 +728,7 @@ sub new_message {
       }
 
       $node->add ({ defns => 'stanza', node => {
-         name => 'thread', attrs => \@attrs, childs => [ $body ] }
+         name => 'thread', attrs => \@attrs, childs => [ $thread ] }
       });
    }
 
@@ -712,7 +779,7 @@ If C<$show> is undefined it has the same meaning as being 'available'.
 C<$status> contains the human readable presence status. It can either be a
 simple string or a hash reference. If it is a hash reference the keys define
 the language tag and the values the human readable text for the status in that
-language.
+language. (See also description of C<$body> in C<new_message> above).
 
 C<$priority> is the priority of the presence. C<$priority> should be either
 a number or undef.
