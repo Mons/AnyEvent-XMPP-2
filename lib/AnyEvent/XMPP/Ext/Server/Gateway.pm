@@ -237,7 +237,19 @@ Complex handlers with any_gateway_* fallback
 
 =cut
 
+use Data::Dumper; $Data::Dumper::Useqq = 1;
 
+sub array2xml {
+	my $f= shift;
+	ref $f or return $f;
+	@$f or return [];
+	( map {+{
+		name => $f->[$_*2],
+		childs => [
+			array2xml( $f->[$_*2+1] )
+		],
+	}} 0..int($#$f/2) ),
+}
 
 sub required_extensions { 'AnyEvent::XMPP::Ext::Disco' }
 sub autoload_extensions { 'AnyEvent::XMPP::Ext::Disco' }
@@ -295,7 +307,6 @@ sub iq_hash {
 	my %iq = map { $_ => $node->attr($_) } qw(id from to type);
 	my $q;
 	if (($q) = $node->find($ns,$type)) {
-		#warn "found node $ns:$type: $q";
 		return { iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) };
 	} else {
 		return { iq => \%iq };
