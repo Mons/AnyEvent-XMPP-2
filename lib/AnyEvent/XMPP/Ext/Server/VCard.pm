@@ -25,7 +25,7 @@ sub init {
 			if (($q) = $node->find_all([qw/vcard vCard/])) {
 				warn "vcard query $iqtype $iq{id}: $iq{from} => $iq{to}";
 				#my %q = ( iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) );
-				$self->event( $iqtype => $q,$node, $node->attr('from'),$node->attr('to') )
+				$self->event( $iqtype => $q, $node, $node->attr('from'),$node->attr('to') )
 					or warn("event <vcard.$iqtype> not handled"),return;
 				$ext->stop_event;return 1;
 			}
