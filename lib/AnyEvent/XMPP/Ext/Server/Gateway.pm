@@ -825,7 +825,7 @@ sub roster_add {
 					childs => [
 						map {
 							{
-								name => 'item', attrs => [ jid => bare_jid($_->{jid}), name => $_->{name}, subscription => 'to', ],
+								name => 'item', attrs => [ jid => bare_jid($_->{jid}), name => $_->{name}, subscription => $_->{subscription} || 'to', ],
 								childs => [
 									{ name => 'group', childs => [ $_->{group} || $self->{extendable}->jid ] },
 								]

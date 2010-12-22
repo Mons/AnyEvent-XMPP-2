@@ -146,7 +146,7 @@ sub init_exts {
 
    $self->{version}->set_name ($self->{client_name});
    $self->{version}->set_version ($self->{client_version});
-   my $v = `uname -s -r -m -o`;
+   my $v = `uname -s -r -m`;
    $v =~ s/(\r?\n)+$//;
    $self->{version}->set_os ($v);
 
