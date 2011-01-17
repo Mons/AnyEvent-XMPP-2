@@ -331,11 +331,13 @@ sub init {
 	#$self->set_identity (client => console => 'AnyEvent::XMPP');
 	$self->{id}     = 'aaaaa';
 	$self->{fields} ||= [qw(username password)];
+	$self->{type}   ||= 'xmpp';
+	warn "create ext $self with type $self->{type}";
 	$self->{name}   ||= $self->{extendable}{name} || 'AnyEvent::XMPP::Gateway';
 	$self->{disco}  = $self->{extendable}->get_ext('Disco');
 	$self->{disco}->unset_identity('client');
 
-	$self->{disco}->set_identity('gateway', 'xmpp', $self->{name});
+	$self->{disco}->set_identity('gateway', $self->{type}, $self->{name});
 	$self->{disco}->{cb_id} = $self->{extendable}->reg_cb (
 		ext_before_recv_iq => sub {
 			my ($ext, $node) = @_;
