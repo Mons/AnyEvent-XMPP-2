@@ -170,7 +170,7 @@ sub _analyze_stanza {
 
    if ($meta->{presence}) {
       $self->_int_upd_presence (
-         $resjid, $from, $meta->{is_resource_presence}, _to_pres_struct ($node));
+         $resjid, $from, $meta->{is_resource_presence}, _to_pres_struct ($node), $node);
 
    } else {
       $self->_int_handle_subscription ($resjid, $from, $node);
@@ -247,7 +247,7 @@ sub _eq_pres {
 
 # $resjid and $jid needs to be stringprepped
 sub _int_upd_presence {
-   my ($self, $resjid, $jid, $is_own, $new) = @_;
+   my ($self, $resjid, $jid, $is_own, $new, $node) = @_;
 
    my ($key, $ev) =
       $is_own
@@ -298,9 +298,9 @@ sub _int_upd_presence {
    }
 
    unless (_eq_pres ($prev, $new)) {
-      $self->event ($ev => $resjid, bare_jid ($jid), $prev, $new);
+      $self->event ($ev => $resjid, bare_jid ($jid), $prev, $new, $node);
    } else {
-      $self->event (notify => $resjid, bare_jid ($jid), $prev, $new);
+      $self->event (notify => $resjid, bare_jid ($jid), $prev, $new, $node);
    }
 }
 
