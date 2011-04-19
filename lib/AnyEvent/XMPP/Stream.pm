@@ -735,8 +735,7 @@ sub send : event_cb(ext_after) {
 
    if ((defined $node->meta->{lang})
        && $node->meta->{lang} ne $self->{default_stream_lang}) {
-
-      $node->attr_ns (xml => lang => $node->{meta}->{lang});
+      $node->attr_ns (xml => lang => $node->meta->{lang});
    }
 
    $node->meta->{lang} = $self->{default_stream_lang}
