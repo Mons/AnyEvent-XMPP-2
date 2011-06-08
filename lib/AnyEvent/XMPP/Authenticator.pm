@@ -73,6 +73,12 @@ sub construct_sasl_auth {
    my $data;
 
    my $found_mech = 0;
+   
+   if ($self->{connection}{select_mech}) {
+      $mechs = $self->{connection}{select_mech}->( $mechs );
+      $mechs = [$mechs] unless ref $mechs;
+   }
+   
    while (!$found_mech) {
       my $sasl = Authen::SASL->new (
          mechanism => join (' ', @$mechs),

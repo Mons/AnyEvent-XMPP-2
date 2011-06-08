@@ -278,7 +278,7 @@ sub fields {
 
 sub nextid {
 	my $self = shift;
-	return 'gw'.++$self->{id};
+	return 'gw-'.++$self->{id};
 }
 
 # COPYPAST! vvv
@@ -381,6 +381,7 @@ sub init {
 			#warn "Got presence from $from";
 
 			$to = $resjid unless defined $to;
+			$to = $self->{extendable}->jid unless defined $to;
 
 			unless (defined (node_jid $to) || defined (node_jid $from)) {
 				warn "$resjid: Ignoring badly addressed presence stanza: "
@@ -447,7 +448,6 @@ sub init {
 			#warn "iq type = $iq{type}";
 			my $q;
 			if ($iqtype eq 'get' and ($q) = $node->find_all([qw/register query/])) {
-				warn "register query $iq{id}: $iq{from} => $iq{to}";
 				$self->event( request => $q, $node )
 					or warn("event <gateway.request> not handled"),return;
 				$ext->stop_event;return 1;
@@ -498,43 +498,44 @@ sub init {
 sub probe {
 	my $self = shift;
 	my ($from,$to) = @_;
-	$self->{extendable}->send( new_presence( probe => undef, undef , undef, src => $from, from => $from, to => $to) );
+	$self->{extendable}->send( new_presence( probe => undef, undef , undef, src => $from, from => $from, to => $to, id => $self->nextid ) );
 }
 
 sub subscribe {
 	my $self = shift;
 	my ($from,$to) = @_;
-	$self->{extendable}->send( new_presence( subscribe => undef, undef , undef, src => $from, from => $from, to => $to) );
+	$self->{extendable}->send( new_presence( subscribe => undef, undef , undef, src => $from, from => $from, to => $to, id => $self->nextid) );
 }
 
 sub subscribed {
 	my $self = shift;
+	warn "Call subscribed from @{[ (caller)[1,2] ]}";
 	my ($from,$to) = @_;
-	$self->{extendable}->send( new_presence( subscribed => undef, undef , undef, src => $from, from => $from, to => $to) );
+	$self->{extendable}->send( new_presence( subscribed => undef, undef , undef, src => $from, from => $from, to => $to, id => $self->nextid) );
 }
 
 sub unsubscribe {
 	my $self = shift;
 	my ($from,$to) = @_;
-	$self->{extendable}->send( new_presence( unsubscribe => undef, undef , undef, src => $from, from => $from, to => $to) );
+	$self->{extendable}->send( new_presence( unsubscribe => undef, undef , undef, src => $from, from => $from, to => $to, id => $self->nextid) );
 }
 
 sub unsubscribed {
 	my $self = shift;
 	my ($from,$to) = @_;
-	$self->{extendable}->send( new_presence( unsubscribed => undef, undef , undef, src => $from, from => $from, to => $to) );
+	$self->{extendable}->send( new_presence( unsubscribed => undef, undef , undef, src => $from, from => $from, to => $to, id => $self->nextid) );
 }
 
 sub available {
 	my $self = shift;
 	my ($from,$to) = @_;
-	$self->{extendable}->send( new_presence( undef, 'online', undef , undef, src => $from,, from => $from, to => $to) );
+	$self->{extendable}->send( new_presence( undef, 'online', undef , undef, src => $from,, from => $from, to => $to, id => $self->nextid) );
 }
 
 sub unavailable {
 	my $self = shift;
 	my ($from,$to) = @_;
-	$self->{extendable}->send( new_presence( unavailable => undef, undef , undef, src => $from, from => $from, to => $to) );
+	$self->{extendable}->send( new_presence( unavailable => undef, undef , undef, src => $from, from => $from, to => $to, id => $self->nextid) );
 }
 
 =item registered($iq, $form)
@@ -721,8 +722,8 @@ sub register_ok {
 	#	bare_jid($iq{to}) => bare_jid($iq{from}),
 	#	1, "Hi! Authorize me for correct work",
 	#);
-	$self->{extendable}->send (new_presence (
-		subscribe => undef, "Hi! Authorize me for correct work", undef, src => bare_jid($iq{to}), to => bare_jid($iq{from})));
+	#$self->{extendable}->send (new_presence (
+	#	subscribe => undef, "Hi! Authorize me for correct work", undef, src => bare_jid($iq{to}), to => bare_jid($iq{from})));
 
 }
 
@@ -747,7 +748,7 @@ sub unregister_ok {
 			],
 		}
 	));
-	for (qw(unsubscribe unavailable)) {
+	for (qw(unsubscribe unsubscribed unavailable)) {
 	#for (qw(unsubscribe unsubscribed unavailable)) {
 		my $p = new_presence( $_ => undef, undef, undef, src => $iq{to} );
 		$p->attr( to => $iq{from} );
@@ -810,10 +811,24 @@ sub iq_fail {
 	));
 }
 
+sub iq_result {
+	my ($self,$iq) = @_;
+	$self->{extendable}->send(simxml(
+		node => {
+			name => 'iq', attrs => [
+				type => 'result',
+				from => $iq->attr('to'),
+				to   => $iq->attr('from'),
+				id   => $iq->attr('id'),
+			],
+		}
+	));
+}
+
 sub roster_add {
 	my $self = shift;
 	my $user = shift;
-	res_jid($user) or warn("Roster push on bare jid doesn't work"),return;
+	res_jid($user) or $self->{no_warn_roster_bare} or warn("Roster push on bare jid may not work");
 	$self->{extendable}->send(simxml(
 		node => {
 			name => 'iq', attrs => [
@@ -828,9 +843,11 @@ sub roster_add {
 						map {
 							{
 								name => 'item', attrs => [ jid => bare_jid($_->{jid}), name => $_->{name}, subscription => $_->{subscription} || 'to', ],
-								childs => [
-									{ name => 'group', childs => [ $_->{group} || $self->{extendable}->jid ] },
-								]
+								$_->{group} ? (
+									childs => [
+										{ name => 'group', childs => [ $_->{group} || $self->{extendable}->jid ] },
+									]
+								) : (),
 							}
 						} @_
 					]
@@ -877,7 +894,7 @@ sub contact_offline {
 sub roster_del {
 	my $self = shift;
 	my $user = shift;
-	res_jid($user) or warn("Roster push on bare jid doesn't work"),return;
+	res_jid($user) or $self->{no_warn_roster_bare} or warn("Roster push on bare jid may not work");
 	$self->{extendable}->send(simxml(
 		node => {
 			name => 'iq', attrs => [
@@ -899,7 +916,7 @@ sub roster_del {
 			]
 		}
 	));
-	$self->unavailable( bare_jid($_->{jid}),bare_jid($user) ) for @_;
+	#$self->unavailable( bare_jid($_->{jid}),bare_jid($user) ) for @_;
 	#$self->contact_offline($user,$_) for @_;
 }
 

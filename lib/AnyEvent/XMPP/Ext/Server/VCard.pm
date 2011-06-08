@@ -20,10 +20,9 @@ sub init {
 			my ($ext, $node) = @_;
 			my %iq = map { $_ => $node->attr($_) } qw(id from to type);
 			my $iqtype = $node->attr('type');
-			warn "iq type = $iqtype";
 			my $q;
 			if (($q) = $node->find_all([qw/vcard vCard/])) {
-				warn "vcard query $iqtype $iq{id}: $iq{from} => $iq{to}";
+				#warn "vcard query $iqtype $iq{id}: $iq{from} => $iq{to}";
 				#my %q = ( iq => \%iq, ( map { $_->name => $_->text } $q->nodes ) );
 				$self->event( $iqtype => $q, $node, $node->attr('from'),$node->attr('to') )
 					or warn("event <vcard.$iqtype> not handled"),return;

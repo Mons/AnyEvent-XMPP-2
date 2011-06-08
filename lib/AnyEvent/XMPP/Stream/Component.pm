@@ -151,8 +151,8 @@ sub connected {
 
 sub stream_start {
    my ($self, $node) = @_;
-   warn "stream_start ".$node->attr('from');
-   if ($self->{jid} ne ( my $sjid = $node->attr('from') )) {
+   my $sjid = $node->attr('from');
+   if ($self->{jid} ne $sjid ) {
       warn "My jid in stream_start node ($sjid) differs from self.jid ($self->{jid})";
       $self->{jid} = $sjid;
    }

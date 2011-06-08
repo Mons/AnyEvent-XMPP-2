@@ -123,6 +123,32 @@ connection anyway. See also C<send_end> method below.
 
 =cut
 
+{
+use POSIX ();
+my $stream_f;
+sub stream_log {
+	my $self = shift;
+	my ($type,$data) = @_;
+	$data = $$data if ref $data;
+	return unless length $data;
+	warn "no jid for log" unless $self->{jid};
+	utf8::encode $data if utf8::is_utf8($data);
+	defined $stream_f or do {
+		open $stream_f, '>>:raw', "/data/streamlogs/$self->{jid}.log"
+			or return $stream_f = 0;
+		select( (select($stream_f), $| = 1 )[0] );
+	};
+	return if $stream_f == 0;
+	$data .= "\n" unless substr($data,-1,1) eq "\n";
+	printf {$stream_f}
+		"[%s] %s (%s)\n%s",
+		POSIX::strftime('%b %d %H:%M:%S',localtime()),
+		($type eq 'in' ? '<< in' : $type eq 'out' ? '>> out' : '?? '.$type),
+		"$self",
+		$$data,
+}
+}
+
 sub new {
    my $this  = shift;
    my $class = ref($this) || $this;
@@ -267,13 +293,13 @@ information.
 sub connect {
    my ($self, $host, $service, $timeout) = @_;
 
-   if ($self->{handle}) {
+   if ($self->{handle} or $self->{connect_guard}) {
       $self->disconnect ("reconnecting");
    }
 
    $self->cleanup_flags;
 
-   $self->{handle} =
+   $self->{connect_guard} =
       tcp_connect $host, $service, sub {
          my ($fh, $peer_host, $peer_port) = @_;
 
@@ -325,6 +351,7 @@ sub set_handle {
          },
          on_read => sub {
             my ($hdl) = @_;
+            $self->stream_log( in => \$hdl->{rbuf} );
             $self->{parser}->feed (\$hdl->{rbuf});
          },
       );
@@ -351,6 +378,11 @@ demands.
 
 sub write_data {
    my ($self, $data) = @_;
+   $self->{handle} or do {
+      warn "Handle not defined";
+      return;
+   };
+   $self->stream_log(out => $data);
 
    $self->{handle}->push_write (encode_utf8 ($data));
    $self->debug_send ($data);
@@ -495,10 +527,19 @@ sub disconnect {
 
    if ($self->{connected}) {
       delete $self->{handle};
+      delete $self->{connect_guard};
       $self->disconnected ($self->{peer_host}, $self->{peer_port}, $msg);
 
-   } elsif ($self->{handle}) {
+   }
+   elsif ($self->{connect_guard}) {
       delete $self->{handle};
+      delete $self->{connect_guard};
+      $self->connect_error ($msg);
+   }
+   elsif ($self->{handle}) {
+      warn "Have handle, but not connected?";
+      delete $self->{handle};
+      delete $self->{connect_guard};
       $self->connect_error ($msg);
    }
 
@@ -540,6 +581,9 @@ sub cleanup {
 
    if ($self->{handle}) {
       delete $self->{handle};
+   }
+   if ($self->{connect_guard}) {
+      delete $self->{connect_guard};
    }
 
    if ($self->{parser}) {

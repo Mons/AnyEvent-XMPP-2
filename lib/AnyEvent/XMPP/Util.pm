@@ -822,7 +822,7 @@ sub new_presence {
       _add_language_element ($node, 'status', $status);
    }
 
-   if (defined $show) {
+   if (defined $show and $show =~ /^(away|chat|dnd|xa)$/) {
       $node->add ({ defns => 'stanza', node => { name => 'show', childs => [ $show ] } });
    }
 
