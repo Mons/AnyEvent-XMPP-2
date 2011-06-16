@@ -145,7 +145,7 @@ sub stream_log {
 		POSIX::strftime('%b %d %H:%M:%S',localtime()),
 		($type eq 'in' ? '<< in' : $type eq 'out' ? '>> out' : '?? '.$type),
 		"$self",
-		$$data,
+		$data,
 }
 }
 
