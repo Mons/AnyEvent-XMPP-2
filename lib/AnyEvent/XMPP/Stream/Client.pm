@@ -219,6 +219,7 @@ sub new {
    my $this = shift;
    my $class = ref($this) || $this;
    my $self = $class->SUPER::new (@_);
+   $self->stream_log(init => ~~localtime());
 
    if (defined $self->{jid}) {
       my ($user, $host, $res) = split_jid (delete $self->{jid});

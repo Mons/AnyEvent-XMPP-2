@@ -5,7 +5,7 @@ use AnyEvent::Socket;
 use AnyEvent::Handle;
 use AnyEvent::XMPP::Parser;
 use AnyEvent::XMPP::Error::Exception;
-use AnyEvent::XMPP::Util qw/dump_twig_xml/;
+use AnyEvent::XMPP::Util qw/dump_twig_xml bare_jid/;
 use AnyEvent::XMPP::Namespaces qw/xmpp_ns xmpp_ns_maybe/;
 use AnyEvent::XMPP::Node qw/simxml/;
 use Encode;
@@ -131,11 +131,12 @@ sub stream_log {
 	my ($type,$data) = @_;
 	$data = $$data if ref $data;
 	return unless length $data;
-	warn "no jid for log" unless $self->{jid};
 	utf8::encode $data if utf8::is_utf8($data);
 	defined $stream_f or do {
-		open $stream_f, '>>:raw', "/data/streamlogs/$self->{jid}.log"
-			or return $stream_f = 0;
+		return warn "no jid for log" unless $self->{jid};
+		my $log = "/data/streamlogs/".bare_jid($self->{jid}).".log";
+		open $stream_f, '>>:raw', $log
+			or return warn ("Can't open streamlog $log: $!"),$stream_f = 0;
 		select( (select($stream_f), $| = 1 )[0] );
 	};
 	return if $stream_f == 0;
@@ -160,6 +161,7 @@ sub new {
       @_,
       enable_methods           => 1,
    );
+   $self->stream_log(init => ~~localtime());
 
    $self->{default_stream_namespace} = xmpp_ns_maybe ($self->{default_stream_namespace});
 
