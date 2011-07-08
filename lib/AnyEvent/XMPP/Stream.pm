@@ -131,7 +131,7 @@ sub stream_log {
 	my ($type,$data) = @_;
 	$data = $$data if ref $data;
 	return unless length $data;
-	warn "no jid for log" unless $self->{jid};
+	#warn "no jid for log" unless $self->{jid};
 	utf8::encode $data if utf8::is_utf8($data);
 	defined $stream_f or do {
 		open $stream_f, '>>:raw', "/data/streamlogs/$self->{jid}.log"
